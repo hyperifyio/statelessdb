@@ -3,6 +3,16 @@
 StatelessDB is a cloud database server that processes encrypted client-side data 
 without storing state, enabling secure and scalable computations.
 
+## Running the server
+
+You can run the server manually:
+
+```bash
+./statelessdb
+```
+
+Once started, the server is available at http://localhost:8080/api/v1
+
 ## Installing StatelessDB
 
 Install the server executable:

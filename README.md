@@ -1,13 +1,16 @@
 # @hyperifyio/statelessdb
 
 **StatelessDB** is a stateless, object-oriented cloud database server built to
-securely process encrypted data stored on the client side. With a zero-trust 
-architecture, StatelessDB allows data to be stored by the client or third-party 
-services while compute servers perform secure operations without retaining any
-state. Using a shared secret for decryption, it ensures sensitive data remains 
-protected and inaccessible to the client. StatelessDB is a scalable, flexible 
-solution for cloud-native environments, offering secure computation on both 
-public and private object properties—without persistent server-side storage.
+securely process encrypted data stored on the client side.
+
+With a zero-trust architecture, StatelessDB allows data to be stored by the 
+client or third-party services while compute servers perform secure operations
+without retaining any state. Using a shared secret for decryption, it ensures 
+sensitive data remains protected and inaccessible to the client. 
+
+StatelessDB is a scalable, flexible solution for cloud-native environments, 
+offering secure computation on both public and private object properties—without 
+persistent server-side storage.
 
 ## Starting the development server
 
@@ -15,8 +18,7 @@ public and private object properties—without persistent server-side storage.
 docker-compose build && docker-compose up
 ```
 
-Once started, the server is available at http://localhost:8080
-and API is available at http://localhost:3001
+Once started, the server is available at http://localhost:8080/api/v1
 
 ## Starting the server from localhost
 
@@ -28,52 +30,65 @@ PRIVATE_KEY=9ca549e8e80e363cb92b99936dd869c65eca7f474d2b595a72d5e9a2d79eff61 ./s
 
 ## Manual testing with Curl
 
-### Requesting data
+### Creating a resource
 
 Request body:
 
 ```json
-{
-  "nextIndex": 0, 
-}
+{}
 ```
 
 Command: 
 
 ```bash
-curl -i -d '{"nextIndex": 0}' http://localhost:3001
+curl -i -d '{}' http://localhost:8080/api/v1
 ```
 
-Response:
+Response headers:
 
 ```
 HTTP/1.1 200 OK
 Content-Type: application/json
-Date: Sun, 07 Apr 2024 23:41:23 GMT
-Content-Length: 436
+Date: Tue, 08 Oct 2024 23:48:53 GMT
+Content-Length: 440
 ```
+
+Response body:
 
 ```json
 {
-  "score":0,
-  "private":"Y1aU4hhRmV1Puc+05E/apHN5gdAaaXI9px4fOEcvkiGYG4Po6Gp8eO+ZzUduanmX0yWPY6ChVZk+TW7QPO99XgtcoqJjHAwJy0EcV5v54elYflk1Ltr9kBCQqQEP5Tf3WsmB+zinXaFxr6Jkc+mDLLY/VKqMVmkP/qELOLVnMOnuxkCXdzXONYAOYU0u7IEMRtB2lC6fvAjoy6s9wWJFWvp526aFcAnTUN31gIWJbWI6nJu92WJIVu0+wxs9E8AbOBhEG0hXpM72hmH8bBXml5s8Z9S9UxMLpv8ZqaZd5fzCLN1G4ctuLmUC/f5fKhJLAGMhHyMnYLL6zgaf8FkdbvQn3DL/9F1dMmdb",
+  "id":"d626cac1-da23-4c67-9001-7bb03a40e90e",
+  "owner":"91b1ab41-4a73-488f-89fd-c3119b349361",
+  "created":"2024-10-08T23:48:53Z",
+  "updated":"2024-10-08T23:48:53Z",
+  "public":{},
+  "private":"8N1svYP/KbElP84uLI2Ch3wck8jBdQIa+4QUW1G6O+QabgWkupNM99NkxSlw5n0dvum+7lMrGwtrFDvIJgh2bXZLMI6vyDX6VKl4XZSds5z/zCH0QjNG+sSVN+nLY6GR1iJctJwRJzuNtpe4mGl+IYBR5xrnV3VGQ9/BrEkhoErtDuxsQd2ES0yd7JiP6JAnnZVH3V95/MZqfNcJhfHYViXKKk3OF8rbCGROcfzsFlhPany0LiUgkHJl9A+a1MM3"
 }
 ```
 
-### Continuing a data
+### Using the resource
 
 Request body:
 
 ```json
 {
-  "nextIndex": 1, 
-  "private":"Y1aU4hhRmV1Puc+05E/apHN5gdAaaXI9px4fOEcvkiGYG4Po6Gp8eO+ZzUduanmX0yWPY6ChVZk+TW7QPO99XgtcoqJjHAwJy0EcV5v54elYflk1Ltr9kBCQqQEP5Tf3WsmB+zinXaFxr6Jkc+mDLLY/VKqMVmkP/qELOLVnMOnuxkCXdzXONYAOYU0u7IEMRtB2lC6fvAjoy6s9wWJFWvp526aFcAnTUN31gIWJbWI6nJu92WJIVu0+wxs9E8AbOBhEG0hXpM72hmH8bBXml5s8Z9S9UxMLpv8ZqaZd5fzCLN1G4ctuLmUC/f5fKhJLAGMhHyMnYLL6zgaf8FkdbvQn3DL/9F1dMmdb",
+  "payload":{
+    "id":"d626cac1-da23-4c67-9001-7bb03a40e90e",
+    "owner":"91b1ab41-4a73-488f-89fd-c3119b349361",
+    "created":"2024-10-08T23:48:53Z",
+    "updated":"2024-10-08T23:48:53Z",
+    "public":{},
+    "private":"8N1svYP/KbElP84uLI2Ch3wck8jBdQIa+4QUW1G6O+QabgWkupNM99NkxSlw5n0dvum+7lMrGwtrFDvIJgh2bXZLMI6vyDX6VKl4XZSds5z/zCH0QjNG+sSVN+nLY6GR1iJctJwRJzuNtpe4mGl+IYBR5xrnV3VGQ9/BrEkhoErtDuxsQd2ES0yd7JiP6JAnnZVH3V95/MZqfNcJhfHYViXKKk3OF8rbCGROcfzsFlhPany0LiUgkHJl9A+a1MM3"
+  }
 }
 ```
 
 Command:
+
 ```bash
-curl -i -d '{"nextIndex": 1, "gameState": {"score":0,"cards":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"private":"Y1aU4hhRmV1Puc+05E/apHN5gdAaaXI9px4fOEcvkiGYG4Po6Gp8eO+ZzUduanmX0yWPY6ChVZk+TW7QPO99XgtcoqJjHAwJy0EcV5v54elYflk1Ltr9kBCQqQEP5Tf3WsmB+zinXaFxr6Jkc+mDLLY/VKqMVmkP/qELOLVnMOnuxkCXdzXONYAOYU0u7IEMRtB2lC6fvAjoy6s9wWJFWvp526aFcAnTUN31gIWJbWI6nJu92WJIVu0+wxs9E8AbOBhEG0hXpM72hmH8bBXml5s8Z9S9UxMLpv8ZqaZd5fzCLN1G4ctuLmUC/f5fKhJLAGMhHyMnYLL6zgaf8FkdbvQn3DL/9F1dMmdb","lastCard":1,"lastIndex": 15}}' http://localhost:3001
+curl -i \
+  -d '{"payload":{"id":"d626cac1-da23-4c67-9001-7bb03a40e90e","owner":"91b1ab41-4a73-488f-89fd-c3119b349361","created":"2024-10-08T23:48:53Z","updated":"2024-10-08T23:48:53Z","public":{},"private":"8N1svYP/KbElP84uLI2Ch3wck8jBdQIa+4QUW1G6O+QabgWkupNM99NkxSlw5n0dvum+7lMrGwtrFDvIJgh2bXZLMI6vyDX6VKl4XZSds5z/zCH0QjNG+sSVN+nLY6GR1iJctJwRJzuNtpe4mGl+IYBR5xrnV3VGQ9/BrEkhoErtDuxsQd2ES0yd7JiP6JAnnZVH3V95/MZqfNcJhfHYViXKKk3OF8rbCGROcfzsFlhPany0LiUgkHJl9A+a1MM3"}}' \
+  http://localhost:8080/api/v1
 ```
 
 Response:
@@ -81,16 +96,17 @@ Response:
 ```
 HTTP/1.1 200 OK
 Content-Type: application/json
-Date: Sun, 07 Apr 2024 23:42:07 GMT
-Content-Length: 436
+Date: Tue, 08 Oct 2024 23:49:15 GMT
+Content-Length: 440
 ```
 
 ```json
 {
-  "score":0,
-  "cards":[0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,4],
-  "private":"YTUi5aJQjyCqbEBVf1gxNB+KZmkXnzQg0jiqfkJfECE18esg+q+hODgwz3s0lNb5v7oTLRanO/VK22Ppl3zAcCEk6aObarfBJMeGgcw7RdWXUZ19f6pBgz9rp1baVM9CkmPyc/kqqdEZOKFms89dzefhKbY/tUqP6IwLQ5Se3zHT6DsI0YAjbx2JLWcbwUW17vRWMkNibuNpFVgC4H6UwPQLnvNJkJGRjq8Zl6t/xaUIhaEyLMRMF0nVuO6aHQfgel6W/tDMDN2e8CJIlOMpu9zWcJDaRQb+p9Ojk2GtSsQUm90ectElWy/gQ66Rgi8B6mi5hby3kGS6Y8KSBNKbR05F9Sr/sEf196ff",
-  "lastCard": 4,
-  "lastIndex": 1
+  "id":"d626cac1-da23-4c67-9001-7bb03a40e90e",
+  "owner":"91b1ab41-4a73-488f-89fd-c3119b349361",
+  "created":"2024-10-08T23:48:53Z",
+  "updated":"2024-10-08T23:49:15Z",
+  "public":{},
+  "private":"cIkAbZ/rnUbafQSbUiDcdWE8DHGQfbPMU8QuWPot6JTTehppqdGFkR9NLYE/ctpNkpHtumcI88WNIO+DSuhTTmzFkr1jIaL6eF6/tbp98/nHVYHXDg/+txGqhkjnylVOi5VNqgPNLfJI6qoxow3AcsdlL89MJmtr28ocPijAH29ZXmDQMn5+EEFFovHpJ0jBuTjB/tmMsls1NW9FgxL7wWlqWVk8R3/9gBS+GMSdAvmcg9NLSzSw9nR5YkDEckO6"
 }
 ```
