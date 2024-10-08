@@ -1,0 +1,16 @@
+[Unit]
+Description=Gochess Game Service
+After=network.target
+
+[Service]
+User=hgchess
+Group=hgchess
+ExecStart=/opt/games/gochess
+
+EnvironmentFile=/etc/gochess/env
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

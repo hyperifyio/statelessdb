@@ -1,0 +1,19 @@
+version: '3.7'
+
+services:
+
+  statelessdb-compute:
+    container_name: statelessdb-compute
+    image: "hyperifyio/statelessdb-compute:dev"
+    restart: unless-stopped
+    build: .
+    environment:
+      LOG_LEVEL: DEBUG
+      PORT: 8080
+      ENABLE_PPROF: true
+      PRIVATE_KEY: "a1ee74883d70fa9c4b5c9e5856ca58f99b26176be805d20d9c43fc4dbf880b91"
+#    env_file:
+#    - "./.env"
+    ports:
+    - "8080:8080"
+    - "6060:6060"

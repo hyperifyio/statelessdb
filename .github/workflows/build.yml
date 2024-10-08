@@ -1,0 +1,176 @@
+name: Go Build and Release
+
+on:
+  push:
+    tags:
+    - 'v*'
+
+jobs:
+
+  build:
+
+    name: Build on ${{ matrix.os }} for ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    outputs:
+      submodule_commit: ${{ steps.submodule_commit.outputs.SUBMODULE_COMMIT }}
+    strategy:
+      matrix:
+        os:
+        - linux
+        - darwin
+        - windows
+        arch:
+        - amd64
+        - arm64
+#        - 386
+#        - mips
+#        - mips64
+#        - mips64le
+#        - mipsle
+#        - ppc64
+#        - ppc64le
+#        - riscv64
+#        - s390x
+        exclude:
+        - os: darwin
+          arch: 386
+        - os: darwin
+          arch: mips
+        - os: darwin
+          arch: mips64
+        - os: darwin
+          arch: mips64le
+        - os: darwin
+          arch: mipsle
+        - os: darwin
+          arch: ppc64
+        - os: darwin
+          arch: ppc64le
+        - os: darwin
+          arch: riscv64
+        - os: darwin
+          arch: s390x
+        - os: windows
+          arch: mips64
+        - os: windows
+          arch: mips64le
+        - os: windows
+          arch: mipsle
+        - os: windows
+          arch: mips
+        - os: windows
+          arch: ppc64
+        - os: windows
+          arch: ppc64le
+        - os: windows
+          arch: riscv64
+        - os: windows
+          arch: s390x
+
+    steps:
+
+    - name: Extract Tag Name
+      run: echo "TAG_NAME=$(echo ${GITHUB_REF#refs/tags/})" >> $GITHUB_ENV
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22.x'
+
+    - name: Check out the code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set Submodule Commit SHA as commitish
+      id: submodule_commit
+      run: echo "SUBMODULE_COMMIT=$(git -C internal/frontend/statelessdb rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Build
+      run: |
+        make build GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} VERSION=${{ env.TAG_NAME }}
+    - name: Install Syft
+      run: curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+    - name: Generate SBOM
+      run: syft statelessdb -o text > NOTICE
+
+    - name: Prepare Artifacts
+      run: |
+        mkdir statelessdb-${{ env.TAG_NAME }}-${{ matrix.os }}-${{ matrix.arch }}
+        mkdir statelessdb-${{ env.TAG_NAME }}-${{ matrix.os }}-${{ matrix.arch }}/database
+        cp statelessdb statelessdb-${{ env.TAG_NAME }}-${{ matrix.os }}-${{ matrix.arch }}/statelessdb
+        cp README.release.md statelessdb-${{ env.TAG_NAME }}-${{ matrix.os }}-${{ matrix.arch }}/README
+        cp LICENSE.md statelessdb-${{ env.TAG_NAME }}-${{ matrix.os }}-${{ matrix.arch }}/LICENSE
+        cp -r etc statelessdb-${{ env.TAG_NAME }}-${{ matrix.os }}-${{ matrix.arch }}/etc/
+        zip -r statelessdb-${{ env.TAG_NAME }}-${{ matrix.os }}-${{ matrix.arch }}.zip statelessdb-${{ env.TAG_NAME }}-${{ matrix.os }}-${{ matrix.arch }}
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: statelessdb-${{ env.TAG_NAME }}-${{ matrix.os }}-${{ matrix.arch }}
+        path: statelessdb-${{ env.TAG_NAME }}-${{ matrix.os }}-${{ matrix.arch }}.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set MIT LICENSE Date
+      run: echo "MIT_DATE=$(date -d "+2 years" +'%Y-%m-%d')" >> $GITHUB_ENV
+
+    - name: Extract Tag Name
+      run: echo "TAG_NAME=$(echo ${GITHUB_REF#refs/tags/})" >> $GITHUB_ENV
+
+    - name: Set Current Date
+      run: echo "CURRENT_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: .
+        pattern: statelessdb-v*
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ${{ github.ref }} / ${{ env.CURRENT_DATE }}
+        draft: false
+        prerelease: false
+        body: |
+          Notice! This release contains the database server release as an executable.
+
+          This release is provided under **Functional Source License, Version 1.1, MIT Future License**. 
+
+          For other commercial license options before **${{ env.MIT_DATE }}**, please contact sales at [sales@hg.fi](mailto:sales@hg.fi) or visit our [website](https://www.heusalagroup.com).
+
+          Please refer to [the full license text](https://github.com/hyperifyio/statelessdb/blob/main/LICENSE.md) for detailed terms and conditions.
+
+    - name: Upload Release Assets
+      run: |
+        for os in linux darwin windows; do
+          for arch in amd64 arm64 386 mips mips64 mips64le mipsle ppc64 ppc64le riscv64 s390x; do
+            upload_url=$(echo "${{ steps.create_release.outputs.upload_url }}" | sed -re 's@/assets([?{][^\/]*)$@/assets@')
+            file="statelessdb-${{ env.TAG_NAME }}-$os-$arch/statelessdb-${{ env.TAG_NAME }}-$os-$arch.zip"
+            if [ -f "$file" ]; then
+              echo
+              echo "Uploading $file"
+              echo '------------------------------'
+              curl -L \
+                -X POST \
+                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                -H "Content-Type: application/octet-stream" \
+                --data-binary @"$file" \
+                "$upload_url?name=$(basename $file)"
+              echo '------------------------------'
+            else
+              echo "$file not found, skipping..."
+            fi
+          done
+        done
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
