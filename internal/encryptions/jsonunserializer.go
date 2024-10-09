@@ -5,8 +5,9 @@ package encryptions
 
 import (
 	"bytes"
-	"encoding/json"
 	"sync"
+
+	jsoniter "github.com/json-iterator/go"
 
 	"statelessdb/internal/errors"
 )
@@ -21,13 +22,13 @@ var jsonDecoderPoolState = sync.Pool{
 	},
 }
 
-func getJsonDecoderState() *JsonDecoderState {
+func GetJsonDecoderState() *JsonDecoderState {
 	return jsonDecoderPoolState.Get().(*JsonDecoderState)
 }
 
 type JsonDecoderState struct {
 	buffer  *bytes.Buffer
-	decoder *json.Decoder
+	Decoder *jsoniter.Decoder
 }
 
 func (e *JsonDecoderState) Release() {
@@ -48,11 +49,11 @@ func NewJsonUnserializer[T interface{}](name string) *JsonUnserializer[T] {
 
 // Unserialize decodes serialized data
 func (dp *JsonUnserializer[T]) Unserialize(serialized []byte, out T) error {
-	state := getJsonDecoderState()
+	state := GetJsonDecoderState()
 	defer state.Release()
 	buf := state.buffer
 	buf.Write(serialized)
-	if err := state.decoder.Decode(out); err != nil {
+	if err := state.Decoder.Decode(out); err != nil {
 		log.Errorf("[JsonUnserializer.Unserialize]: json decode failed: %v", err)
 		return errors.ErrDecryptDecodingJsonSerializationFailed
 	}

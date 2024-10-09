@@ -5,9 +5,12 @@ package encryptions
 
 import (
 	"bytes"
-	"encoding/json"
 	"sync"
+
+	jsoniter "github.com/json-iterator/go"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 var jsonEncoderPoolState = sync.Pool{
 	New: func() interface{} {
@@ -19,13 +22,13 @@ var jsonEncoderPoolState = sync.Pool{
 	},
 }
 
-func getJsonEncoderState() *JsonEncoderState {
+func GetJsonEncoderState() *JsonEncoderState {
 	return jsonEncoderPoolState.Get().(*JsonEncoderState)
 }
 
 type JsonEncoderState struct {
 	buffer  *bytes.Buffer
-	encoder *json.Encoder
+	Encoder *jsoniter.Encoder
 }
 
 var _ SerializerState = &JsonEncoderState{}
@@ -53,8 +56,8 @@ func NewJsonSerializer[T interface{}](name string) *JsonSerializer[T] {
 // Serialize serializes the given data using a reusable json.Encoder.
 // It returns the serialized bytes or an error.
 func (s *JsonSerializer[T]) Serialize(data T) (SerializerState, error) {
-	state := getJsonEncoderState()
-	if err := state.encoder.Encode(data); err != nil {
+	state := GetJsonEncoderState()
+	if err := state.Encoder.Encode(data); err != nil {
 		state.Release()
 		return nil, err
 	}

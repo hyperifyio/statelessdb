@@ -5,14 +5,17 @@ package encryptions_test
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"statelessdb/internal/helpers"
 	"sync"
 	"testing"
 
+	jsoniter "github.com/json-iterator/go"
+
 	"statelessdb/internal/encryptions"
+	"statelessdb/internal/helpers"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // TestJsonSerializer_SerializeBasicTypes tests serialization of basic types.
 func TestJsonSerializer_SerializeBasicTypes_String(t *testing.T) {

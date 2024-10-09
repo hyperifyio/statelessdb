@@ -4,9 +4,10 @@
 package encryptions_test
 
 import (
-	"statelessdb/internal/encryptions"
 	"sync"
 	"testing"
+
+	"statelessdb/internal/encryptions"
 )
 
 // TestJsonUnserializer_UnserializeBasic tests basic unserialization.

@@ -13,12 +13,13 @@ import (
 // for each! Create another constant for each error.
 
 const (
-	EncodingFailedError   = "encoding-failed"
-	EncryptionFailedError = "encryption-failed"
-	DecryptionFailedError = "decryption-failed"
-	BadPrivateBodyError   = "bad-private-body"
-	BadBodyError          = "bad-body"
-	ComputeLogicError     = "compute-logic-error"
+	EncodingFailedError    = "encoding-failed"
+	WritingBodyFailedError = "writing-body-failed"
+	EncryptionFailedError  = "encryption-failed"
+	DecryptionFailedError  = "decryption-failed"
+	BadPrivateBodyError    = "bad-private-body"
+	BadBodyError           = "bad-body"
+	ComputeLogicError      = "compute-logic-error"
 )
 
 func sendHttpError(w http.ResponseWriter, code string, status int) {

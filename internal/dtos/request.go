@@ -5,8 +5,16 @@ package dtos
 
 // ComputeRequestDTO defines the structure of the request body to the compute server
 type ComputeRequestDTO struct {
+	Public  map[string]interface{} `json:"public,omitempty"`  // Public contains public properties for a new resource
+	Private string                 `json:"private,omitempty"` // Private contains the private property from previous request. If omitted, a new resource is initialized.
+}
 
-	// Payload The state of compute from previous request.
-	// If not defined, a new compute resource is initialized.
-	Payload *ComputeStateDTO `json:"payload,omitempty"`
+func NewComputeRequestDTO(
+	public map[string]interface{},
+	private string,
+) *ComputeRequestDTO {
+	return &ComputeRequestDTO{
+		Public:  public,
+		Private: private,
+	}
 }

@@ -13,7 +13,7 @@ var bytesBufferPoolManager *types.MemoryPoolManager[*bytes.Buffer]
 func init() {
 	bytesBufferPoolManager = types.NewMemoryPoolManager[*bytes.Buffer](func(size int) func() *bytes.Buffer {
 		return func() *bytes.Buffer {
-			return &bytes.Buffer{}
+			return new(bytes.Buffer)
 		}
 	})
 }

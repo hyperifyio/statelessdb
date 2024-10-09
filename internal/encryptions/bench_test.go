@@ -6,7 +6,6 @@ package encryptions_test
 import (
 	"bytes"
 	"encoding/gob"
-	"encoding/json"
 	"github.com/google/uuid"
 	"statelessdb/internal/encryptions"
 	"statelessdb/internal/states"

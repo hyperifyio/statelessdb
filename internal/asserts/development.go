@@ -71,3 +71,17 @@ func MinLength[T interface{ ~[]E | chan E }, E any](value T, expected int) {
 		log.Fatalf("FATAL ERROR: Length of slice too low: Got %d, expected to be at least %d. \n\nStack is:\n%s", len(value), expected, string(stack))
 	}
 }
+
+func NotNil[T comparable](value T) {
+	if value == nil {
+		runtime.Stack(stack, false)
+		log.Fatalf("FATAL ERROR: Not nil assert failed: Got %v, expected not to be nil. \n\nStack is:\n%s", value, string(stack))
+	}
+}
+
+func Nil[T comparable](value T) {
+	if value != expected {
+		runtime.Stack(stack, false)
+		log.Fatalf("FATAL ERROR: Nil assert failed: Got %v, expected to be nil. \n\nStack is:\n%s", value, string(stack))
+	}
+}
