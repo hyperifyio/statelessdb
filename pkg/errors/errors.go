@@ -9,6 +9,7 @@ import "errors"
 
 var (
 	ErrFailedToDecryptComputeState                     = errors.New("failed to decrypt compute state")
+	ErrFailedToInitializeComputeState                  = errors.New("failed to initialize compute state")
 	ErrDecryptorInitializeFailedKeySizeLessThanMinimum = errors.New("initializing decryptor: Key size is not enough")
 	ErrDecryptorInitializeFailedNewCipher              = errors.New("initializing decryptor: failed to create cipher")
 	ErrDecryptorInitializeFailedNewGCM                 = errors.New("initializing decryptor: failed to create GCM")
@@ -23,4 +24,9 @@ var (
 	ErrDecryptDecodingGobSerializationFailed           = errors.New("decrypting: Failed to decode GOB serialized data")
 	ErrDecryptDecodingJsonSerializationFailed          = errors.New("decrypting: Failed to decode JSON serialized data")
 	ErrDecryptFailed                                   = errors.New("decrypting failed")
+	ErrFailedToInitializeEncryptor                     = errors.New("encryptor initialization failed")
+	ErrFailedToInitializeDecryptor                     = errors.New("decryptor initialization failed")
+	ErrBadRequestBodyError                             = errors.New("bad request body error")
+	ErrRequestEncodingError                            = errors.New("request encoding error")
+	ErrComputeStateEncryptionFailed                    = errors.New("compute state encryption failed")
 )

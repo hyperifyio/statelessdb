@@ -5,8 +5,7 @@ package apis
 
 import (
 	"net/http"
-
-	"statelessdb/internal/metrics"
+	"statelessdb/pkg/metrics"
 )
 
 // Make sure these are used only once per place, e.g. IDE should report 1 usage

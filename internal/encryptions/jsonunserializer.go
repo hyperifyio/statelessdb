@@ -5,11 +5,10 @@ package encryptions
 
 import (
 	"bytes"
+	"statelessdb/pkg/errors"
 	"sync"
 
 	jsoniter "github.com/json-iterator/go"
-
-	"statelessdb/internal/errors"
 )
 
 var jsonDecoderPoolState = sync.Pool{

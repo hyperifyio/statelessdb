@@ -6,7 +6,7 @@ package encryptions
 import (
 	"bytes"
 	"encoding/gob"
-	"statelessdb/internal/errors"
+	"statelessdb/pkg/errors"
 	"sync"
 )
 

@@ -8,7 +8,7 @@ import (
 	"crypto/cipher"
 	"encoding/base64"
 
-	"statelessdb/internal/errors"
+	"statelessdb/pkg/errors"
 )
 
 // Decryptor helps with providing memory for encryption
@@ -52,12 +52,12 @@ func (e *Decryptor[T]) Decrypt(encryptedData string, out T) error {
 	data, err := base64.StdEncoding.DecodeString(encryptedData)
 
 	if err != nil {
-		log.Errorf("[Decrypt]: base64: DecodeString: %v", err)
+		log.Errorf("[Decryptor.Decrypt]: base64: DecodeString: %v", err)
 		return errors.ErrDecryptBase64StringFailed
 	}
 	nonceSize := e.gcm.NonceSize()
 	if len(data) < nonceSize {
-		log.Errorf("[Decrypt]: data length %d is less than nonce size %d", len(data), nonceSize)
+		log.Errorf("[Decryptor.Decrypt]: data length %d is less than nonce size %d", len(data), nonceSize)
 		return errors.ErrDecryptDataLengthLessThanNonceSize
 	}
 	nonce := data[:nonceSize]
@@ -65,11 +65,11 @@ func (e *Decryptor[T]) Decrypt(encryptedData string, out T) error {
 
 	serialized, err := e.gcm.Open(nil, nonce, ciphertextBytes, nil)
 	if err != nil {
-		log.Errorf("[Decrypt]: gcm.Open: %v", err)
+		log.Errorf("[Decryptor.Decrypt]: gcm.Open: %v", err)
 		return errors.ErrDecryptFailed
 	}
 	if err = e.unserializer.Unserialize(serialized, out); err != nil {
-		log.Errorf("[Decrypt]: decoding serialized data failed: %v", err)
+		log.Errorf("[Decryptor.Decrypt]: decoding serialized data failed: %v", err)
 		return errors.ErrDecryptDecodingSerializationFailed
 	}
 	return nil

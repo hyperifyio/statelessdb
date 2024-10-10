@@ -4,16 +4,18 @@
 package main
 
 import (
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"os"
-	"strconv"
 
-	"encoding/hex"
+	"github.com/google/uuid"
 
-	"statelessdb/internal/apis"
 	"statelessdb/internal/encryptions"
-	"statelessdb/internal/states"
+	"statelessdb/pkg/apis"
+	"statelessdb/pkg/dtos"
+	"statelessdb/pkg/requests"
+	"statelessdb/pkg/states"
 
 	statelessdb "statelessdb"
 )
@@ -26,22 +28,25 @@ func main() {
 
 	// Define flags
 	addr := flag.String("addr", "", "change default address to listen")
-	privateKeyString := flag.String("private-key", parseStringEnv("PRIVATE_KEY", ""), "set private key")
 	port := flag.Int("port", parseIntEnv("PORT", 3001), "change default port")
+	privateKeyString := flag.String("private-key", parseStringEnv("PRIVATE_KEY", ""), "set private key")
 	version := flag.Bool("version", false, "Show version information")
 	enablePprof := flag.Bool("pprof", parseBooleanEnv("ENABLE_PPROF", false), "Enable pprof for debugging")
 	initPrivateKey := flag.Bool("init-private-key", false, "Create a new private key and print it")
 
-	listenTo := fmt.Sprintf("%s:%d", *addr, *port)
-
-	// Parse the flags
+	// Parse flags
 	flag.Parse()
 
+	// Handle --addr and --port
+	listenTo := fmt.Sprintf("%s:%d", *addr, *port)
+
+	// Handle --version
 	if *version {
 		fmt.Printf("%s v%s by %s\nURL = %s\n", statelessdb.Name, statelessdb.Version, statelessdb.Author, statelessdb.URL)
 		return
 	}
 
+	// Handle --init-private-key
 	if *initPrivateKey {
 		key, err := encryptions.GenerateKey(32) // AES-256
 		if err != nil {
@@ -53,92 +58,68 @@ func main() {
 		return
 	}
 
-	var serverKey []byte
-	if *privateKeyString == "" {
-		key, err := encryptions.GenerateKey(32) // AES-256
-		if err != nil {
-			log.Errorf("Failed to generate key: %v", err)
-			os.Exit(1)
-		} else {
-			log.Warnf("Initialized with a random private key '%s'. You might want to make this persistent.", hex.EncodeToString(key))
-			serverKey = key
-		}
-	} else {
-		serverKey, err = hex.DecodeString(*privateKeyString)
-		if err != nil {
-			log.Errorf("Failed to decode private key: %v", err)
-			os.Exit(1)
-		}
-	}
-
-	serializer := encryptions.NewJsonSerializer[*states.ComputeState]("ComputeState")
-	unserializer := encryptions.NewJsonUnserializer[*states.ComputeState]("ComputeState")
-
-	encryptor := encryptions.NewEncryptor[*states.ComputeState](serializer)
-	err = encryptor.Initialize(serverKey)
+	// Handle --private-key
+	serverKey, err := parsePrivateKeyString(*privateKeyString)
 	if err != nil {
-		log.Errorf("Failed to initialize encryptor: %v", err)
+		log.Errorf("Private key parsing failed: %v", err)
 		os.Exit(1)
 	}
 
-	decryptor := encryptions.NewDecryptor[*states.ComputeState](unserializer)
-	err = decryptor.Initialize(serverKey)
+	// Define the server
+
+	newState := func() *states.ComputeState {
+		return &states.ComputeState{}
+	}
+
+	newRequestDTO := func() *requests.ComputeRequest {
+		return &requests.ComputeRequest{}
+	}
+
+	computeRequestManager, err := requests.NewJsonRequestManager[*states.ComputeState, *requests.ComputeRequest, *dtos.ComputeResponseDTO](
+		"ComputeState",
+		serverKey,
+		newState,
+		newRequestDTO,
+	)
 	if err != nil {
-		log.Errorf("Failed to initialize decryptor: %v", err)
+		log.Errorf("Failed to initialize JSON request handler: %v", err)
 		os.Exit(1)
 	}
 
-	server := apis.NewServer(encryptor, decryptor)
+	server := apis.NewServer()
+	if *enablePprof {
+		server.EnablePprof()
+	}
+	server.Handle("/api/v1", computeRequestManager.HandleWith(ApiRequestHandler).WithResponse(NewComputeResponseDTO))
 
+	// Start the server
 	log.Infof("Starting server at %s", listenTo)
-	server.StartLocalServer(listenTo, *enablePprof)
+	server.StartLocalServer(listenTo)
 
 }
 
-func parseIntEnv(key string, defaultValue int) int {
-	str := os.Getenv(key)
-	if str == "" {
-		return defaultValue
+// ApiRequestHandler is called when a request to the server is received
+func ApiRequestHandler(r *requests.ComputeRequest, state *states.ComputeState) (*states.ComputeState, error) {
+	if state == nil {
+		var private map[string]interface{}
+		//private = make(map[string]interface{})
+		state = states.NewComputeState(uuid.New(), uuid.New(), r.Received, r.Received, r.Public, private)
 	}
-	result, err := strconv.Atoi(str)
-	if err != nil {
-		return defaultValue
+	if err := state.Initialize(); err != nil {
+		return nil, err
 	}
-	return result
+	state.Updated = r.Received
+
+	return state, nil
 }
 
-func parseStringEnv(key string, defaultValue string) string {
-	str := os.Getenv(key)
-	if str == "" {
-		return defaultValue
-	}
-	return str
-}
-
-func parseBooleanEnv(key string, defaultValue bool) bool {
-	str := os.Getenv(key)
-	if str == "" {
-		return defaultValue
-	}
-	switch str {
-	case "0":
-		return false
-	case "f":
-		return false
-	case "false":
-		return false
-	case "off":
-		return false
-	case "null":
-		return false
-	case "1":
-		return true
-	case "t":
-		return true
-	case "true":
-		return true
-	case "on":
-		return true
-	}
-	return false
+func NewComputeResponseDTO(state *states.ComputeState, private string) *dtos.ComputeResponseDTO {
+	return dtos.NewComputeResponseDTO(
+		state.Id,
+		state.Owner,
+		state.Created,
+		state.Updated,
+		state.Public,
+		private,
+	)
 }

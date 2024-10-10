@@ -70,7 +70,7 @@ Notice, that the `public` is null. This is a performance optimization: we will
 not automatically allocate an object unless you provide one.
 
 
-### Creating a resource without public data
+### Creating a resource with public data
 
 Request body:
 

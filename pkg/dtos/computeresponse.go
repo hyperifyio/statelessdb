@@ -5,11 +5,12 @@ package dtos
 
 import (
 	"github.com/google/uuid"
+
 	"statelessdb/internal/helpers"
 )
 
-// ComputeStateDTO struct defines the structure of the response DTO
-type ComputeStateDTO struct {
+// ComputeResponseDTO struct defines the structure of the response DTO
+type ComputeResponseDTO struct {
 	Id      string                 `json:"id"`      // Id identifies the resource
 	Owner   string                 `json:"owner"`   // Owner is the owner of the resource
 	Created string                 `json:"created"` // Created is the time this resource was created
@@ -18,13 +19,13 @@ type ComputeStateDTO struct {
 	Private string                 `json:"private"` // Private is the internal encrypted types.ComputeState
 }
 
-func NewComputeStateDTO(
+func NewComputeResponseDTO(
 	id, owner uuid.UUID,
 	created, updated int64,
 	public map[string]interface{},
 	private string,
-) *ComputeStateDTO {
-	return &ComputeStateDTO{
+) *ComputeResponseDTO {
+	return &ComputeResponseDTO{
 		Id:      id.String(),
 		Owner:   owner.String(),
 		Created: helpers.MillisToISO(created),

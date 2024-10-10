@@ -5,13 +5,13 @@ package encryptions_test
 
 import (
 	"github.com/google/uuid"
+	"statelessdb/pkg/errors"
+	"statelessdb/pkg/states"
 	"testing"
 
 	"encoding/base64"
 
 	"statelessdb/internal/encryptions"
-	"statelessdb/internal/errors"
-	"statelessdb/internal/states"
 )
 
 func TestNewDecryptor(t *testing.T) {
@@ -69,7 +69,7 @@ func TestDecrypt(t *testing.T) {
 	}{
 		{
 			name:        "Normal 8x8 board",
-			data:        states.New(uuid.New(), uuid.New(), 0, 0, nil, nil),
+			data:        states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil),
 			expectError: false,
 		},
 	}
@@ -137,7 +137,7 @@ func TestDecryptorWithWrongKey(t *testing.T) {
 		t.Fatalf("Failed to initialize Decryptor with key2: %v", err)
 	}
 
-	data := states.New(uuid.New(), uuid.New(), 0, 0, nil, nil)
+	data := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
 
 	ciphertext, err := encryptor.Encrypt(data)
 	if err != nil {
@@ -194,7 +194,7 @@ func TestDecryptorDecryptEmptyString(t *testing.T) {
 		t.Fatalf("Failed to initialize Decryptor: %v", err)
 	}
 
-	data := states.New(uuid.New(), uuid.New(), 0, 0, nil, nil)
+	data := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
 	encrypter := encryptions.NewEncryptor[*states.ComputeState](serializer)
 	err = encrypter.Initialize(key)
 	if err != nil {

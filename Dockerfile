@@ -10,6 +10,7 @@ RUN go mod download
 COPY Makefile .
 COPY doc.go .
 COPY cmd ./cmd
+COPY pkg ./pkg
 COPY internal ./internal
 
 # Build the application

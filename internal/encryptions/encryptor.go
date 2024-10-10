@@ -10,7 +10,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"io"
-	"statelessdb/internal/errors"
+	"statelessdb/pkg/errors"
 )
 
 // Encryptor helps with providing memory for encryption

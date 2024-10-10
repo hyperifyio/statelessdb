@@ -6,8 +6,8 @@ package encryptions_test
 import (
 	"github.com/google/uuid"
 	"statelessdb/internal/encryptions"
-	"statelessdb/internal/errors"
-	"statelessdb/internal/states"
+	"statelessdb/pkg/errors"
+	"statelessdb/pkg/states"
 	"testing"
 )
 
@@ -59,7 +59,7 @@ func TestEncrypt(t *testing.T) {
 	}{
 		{
 			name: "Normal Board",
-			data: states.New(uuid.New(), uuid.New(), 0, 0, nil, nil),
+			data: states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil),
 		},
 	}
 
@@ -91,7 +91,7 @@ func TestEncryptorEncryptNonceUniqueness(t *testing.T) {
 		t.Fatalf("Failed to initialize Encryptor: %v", err)
 	}
 
-	data := states.New(uuid.New(), uuid.New(), 0, 0, nil, nil)
+	data := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
 
 	ciphertext1, err := encryptor.Encrypt(data)
 	if err != nil {

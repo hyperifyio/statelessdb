@@ -5,15 +5,13 @@ package states
 
 import (
 	"github.com/google/uuid"
-	"statelessdb/internal/helpers"
-	"time"
 
-	"statelessdb/internal/encryptions"
-	"statelessdb/internal/errors"
+	"statelessdb/internal/helpers"
 )
 
 // ComputeState is the actual state of computation, which is encrypted to
-// the Private field of dtos.ComputeStateDTO.
+// the Private field of dtos.ComputeResponseDTO. This is the state used by
+// StatelessDB by default, but users may implement their own states.
 type ComputeState struct {
 	Id      uuid.UUID              `json:"id"`      // ID identifies the object
 	Owner   uuid.UUID              `json:"owner"`   // Owner identifies the owner of the object
@@ -21,6 +19,21 @@ type ComputeState struct {
 	Updated int64                  `json:"updated"` // Updated is the time when the object was updated
 	Public  map[string]interface{} `json:"data"`    // Public contains public properties of the object
 	Private map[string]interface{} `json:"private"` // Private contains unencrypted private properties of the object
+}
+
+func NewComputeState(
+	id, owner uuid.UUID,
+	created, updated int64,
+	public, private map[string]interface{},
+) *ComputeState {
+	return &ComputeState{
+		Id:      id,
+		Owner:   owner,
+		Created: created,
+		Updated: updated,
+		Public:  public,
+		Private: private,
+	}
 }
 
 // Equals returns true if both ComputeStates are equal state. This is not counting
@@ -48,41 +61,7 @@ func (b *ComputeState) Equals(other *ComputeState) bool {
 	return true
 }
 
-func NewTimeNow() int64 {
-	return time.Now().UnixMilli()
-}
-
-func New(
-	id, owner uuid.UUID,
-	created, updated int64,
-	public, private map[string]interface{},
-) *ComputeState {
-	return &ComputeState{
-		Id:      id,
-		Owner:   owner,
-		Created: created,
-		Updated: updated,
-		Public:  public,
-		Private: private,
-	}
-}
-
-// Initialize initializes internal state. This allocates internal memory!
-func (g *ComputeState) Initialize() {
-}
-
-// Encrypt serializes the ComputeState to JSON, then encrypts it.
-func (g *ComputeState) Encrypt(encryptor *encryptions.Encryptor[*ComputeState]) (string, error) {
-	return encryptor.Encrypt(g)
-}
-
-// DecryptComputeState decrypts the encrypted string and deserializes the JSON back into a ComputeState.
-func DecryptComputeState(encryptedData string, decryptor *encryptions.Decryptor[*ComputeState]) (*ComputeState, error) {
-	dto := &ComputeState{}
-	if err := decryptor.Decrypt(encryptedData, dto); err != nil {
-		log.Errorf("[DecryptComputeState] failed to decrypt state from dto: %v", err)
-		return nil, errors.ErrFailedToDecryptComputeState
-	}
-	dto.Initialize()
-	return dto, nil
+// Initialize initializes internal state. This may allocate internal memory!
+func (g *ComputeState) Initialize() error {
+	return nil
 }
