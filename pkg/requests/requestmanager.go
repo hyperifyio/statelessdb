@@ -3,11 +3,13 @@
 
 package requests
 
-import "statelessdb/internal/encryptions"
+import (
+	"statelessdb/pkg/encodings"
+)
 
 type ApiRequestHandlerFunc[T interface{}, R Request] func(r R, state T) (T, error)
 
-type ApiBytesRequestHandlerFunc func(body []byte) (encryptions.SerializerState, error)
+type ApiBytesRequestHandlerFunc func(body []byte) (encodings.SerializerState, error)
 
 type RequestManager[T interface{}, R Request, D interface{}] interface {
 	DecodeRequest(body []byte) (R, error)

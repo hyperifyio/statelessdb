@@ -6,13 +6,14 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
-	"statelessdb/internal/encryptions"
+
+	"statelessdb/pkg/encodings"
 )
 
 // parsePrivateKeyString parses AES-256 key, used in --private-key argument
 func parsePrivateKeyString(privateKeyString string) ([]byte, error) {
 	if privateKeyString == "" {
-		key, err := encryptions.GenerateKey(32) // AES-256
+		key, err := encodings.GenerateKey(32) // AES-256
 		if err != nil {
 			return nil, fmt.Errorf("parsePrivateKeyString: failed to generate key: %v", err)
 		}

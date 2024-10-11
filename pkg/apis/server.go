@@ -9,7 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/pprof"
-	"statelessdb/internal/encryptions"
+	"statelessdb/pkg/encodings"
 	"statelessdb/pkg/metrics"
 	"statelessdb/pkg/requests"
 )
@@ -54,7 +54,7 @@ func (s *Server) BuildHandler(handler requests.ResponseManager) func(w http.Resp
 		}
 
 		// Prepare response as JSON
-		encoderState := encryptions.GetJsonEncoderState()
+		encoderState := encodings.GetJsonEncoderState()
 		defer encoderState.Release()
 		if err = encoderState.Encoder.Encode(dto); err != nil {
 			log.Errorf("[Server.BuildHandler]: encoding: error: %v", err)
@@ -98,7 +98,12 @@ func (s *Server) StartLocalServer(listen string) {
 	r.Handle("/metrics", promhttp.Handler())
 
 	for path, handler := range s.routes {
-		r.HandleFunc(path, s.BuildHandler(handler))
+		methods := handler.Methods()
+		if methods != nil {
+			r.HandleFunc(path, s.BuildHandler(handler)).Methods(methods...)
+		} else {
+			r.HandleFunc(path, s.BuildHandler(handler))
+		}
 	}
 
 	//r.PathPrefix("/").Handle(http.StripPrefix("/", wrappedFileServerHandler))

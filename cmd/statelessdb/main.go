@@ -7,13 +7,13 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"github.com/google/uuid"
 	"os"
 
-	"github.com/google/uuid"
-
-	"statelessdb/internal/encryptions"
 	"statelessdb/pkg/apis"
 	"statelessdb/pkg/dtos"
+	"statelessdb/pkg/encodings"
+	"statelessdb/pkg/events"
 	"statelessdb/pkg/requests"
 	"statelessdb/pkg/states"
 
@@ -48,7 +48,7 @@ func main() {
 
 	// Handle --init-private-key
 	if *initPrivateKey {
-		key, err := encryptions.GenerateKey(32) // AES-256
+		key, err := encodings.GenerateKey(32) // AES-256
 		if err != nil {
 			log.Errorf("Failed to generate key: %v", err)
 			os.Exit(1)
@@ -72,7 +72,11 @@ func main() {
 	}
 
 	newRequestDTO := func() *requests.ComputeRequest {
-		return &requests.ComputeRequest{}
+		return requests.NewComputeRequest(
+			0,
+			nil,
+			"",
+		)
 	}
 
 	computeRequestManager, err := requests.NewJsonRequestManager[*states.ComputeState, *requests.ComputeRequest, *dtos.ComputeResponseDTO](
@@ -86,40 +90,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	eventBus := events.NewEventBus[uuid.UUID, interface{}]()
+
 	server := apis.NewServer()
 	if *enablePprof {
 		server.EnablePprof()
 	}
-	server.Handle("/api/v1", computeRequestManager.HandleWith(ApiRequestHandler).WithResponse(NewComputeResponseDTO))
+	server.Handle("/api/v1", computeRequestManager.HandleWith(ApiRequestHandler(eventBus)).WithResponse(NewComputeResponseDTO(eventBus)).WithMethods("GET", "POST"))
+	server.Handle("/api/v1/events", computeRequestManager.HandleWith(ApiEventHandler(eventBus)).WithResponse(NewEventResponseDTO(eventBus)).WithMethods("GET", "POST"))
 
 	// Start the server
 	log.Infof("Starting server at %s", listenTo)
 	server.StartLocalServer(listenTo)
 
-}
-
-// ApiRequestHandler is called when a request to the server is received
-func ApiRequestHandler(r *requests.ComputeRequest, state *states.ComputeState) (*states.ComputeState, error) {
-	if state == nil {
-		var private map[string]interface{}
-		//private = make(map[string]interface{})
-		state = states.NewComputeState(uuid.New(), uuid.New(), r.Received, r.Received, r.Public, private)
-	}
-	if err := state.Initialize(); err != nil {
-		return nil, err
-	}
-	state.Updated = r.Received
-
-	return state, nil
-}
-
-func NewComputeResponseDTO(state *states.ComputeState, private string) *dtos.ComputeResponseDTO {
-	return dtos.NewComputeResponseDTO(
-		state.Id,
-		state.Owner,
-		state.Created,
-		state.Updated,
-		state.Public,
-		private,
-	)
 }

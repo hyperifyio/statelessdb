@@ -4,7 +4,7 @@
 package requests
 
 import (
-	"statelessdb/internal/encryptions"
+	encodings2 "statelessdb/pkg/encodings"
 	"statelessdb/pkg/errors"
 )
 
@@ -15,15 +15,15 @@ func NewJsonRequestManager[T interface{}, R Request, D interface{}](
 	newRequest func() R,
 ) (*EncryptedRequestManager[T, R, D], error) {
 
-	serializer := encryptions.NewJsonSerializer[T](name)
-	encryptor := encryptions.NewEncryptor[T](serializer)
+	serializer := encodings2.NewJsonSerializer[T](name)
+	encryptor := encodings2.NewEncryptor[T](serializer)
 	if err := encryptor.Initialize(serverKey); err != nil {
 		log.Errorf("Failed to initialize encryptor: %v", err)
 		return nil, errors.ErrFailedToInitializeEncryptor
 	}
 
-	unserializer := encryptions.NewJsonUnserializer[T](name)
-	decryptor := encryptions.NewDecryptor[T](unserializer)
+	unserializer := encodings2.NewJsonUnserializer[T](name)
+	decryptor := encodings2.NewDecryptor[T](unserializer)
 	if err := decryptor.Initialize(serverKey); err != nil {
 		log.Errorf("Failed to initialize decryptor: %v", err)
 		return nil, errors.ErrFailedToInitializeDecryptor

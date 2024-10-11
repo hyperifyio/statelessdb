@@ -1,29 +1,28 @@
 // Copyright (c) 2024. Jaakko Heusala <jheusala@iki.fi>. All rights reserved.
 // Licensed under the FSL-1.1-MIT, see LICENSE.md in the project root for details.
 
-package encryptions_test
+package encodings_test
 
 import (
 	"github.com/google/uuid"
+	encodings2 "statelessdb/pkg/encodings"
 	"statelessdb/pkg/errors"
 	"statelessdb/pkg/states"
 	"testing"
 
 	"encoding/base64"
-
-	"statelessdb/internal/encryptions"
 )
 
 func TestNewDecryptor(t *testing.T) {
-	validKey, err := encryptions.GenerateKey(32)
+	validKey, err := encodings2.GenerateKey(32)
 	if err != nil {
 		t.Fatalf("Failed to generate key: %v", err)
 	}
 
 	// Test successful initialization
-	unserializer := encryptions.NewGobUnserializer[*states.ComputeState]("ComputeState")
+	unserializer := encodings2.NewGobUnserializer[*states.ComputeState]("ComputeState")
 
-	decryptor := encryptions.NewDecryptor[*states.ComputeState](unserializer)
+	decryptor := encodings2.NewDecryptor[*states.ComputeState](unserializer)
 	err = decryptor.Initialize(validKey)
 	if err != nil {
 		t.Fatalf("NewDecryptor failed with valid key: %v", err)
@@ -31,7 +30,7 @@ func TestNewDecryptor(t *testing.T) {
 
 	// Test initialization with invalid key size
 	invalidKey := []byte("shortkey")
-	decryptor = encryptions.NewDecryptor[*states.ComputeState](unserializer)
+	decryptor = encodings2.NewDecryptor[*states.ComputeState](unserializer)
 	err = decryptor.Initialize(invalidKey)
 	if err == nil {
 		t.Errorf("NewDecryptor should fail with invalid key size")
@@ -43,20 +42,20 @@ func TestNewDecryptor(t *testing.T) {
 }
 
 func TestDecrypt(t *testing.T) {
-	key, err := encryptions.GenerateKey(32)
+	key, err := encodings2.GenerateKey(32)
 	if err != nil {
 		t.Fatalf("Failed to generate key: %v", err)
 	}
 
-	serializer := encryptions.NewGobSerializer[*states.ComputeState]("ComputeState")
-	unserializer := encryptions.NewGobUnserializer[*states.ComputeState]("ComputeState")
-	encryptor := encryptions.NewEncryptor[*states.ComputeState](serializer)
+	serializer := encodings2.NewGobSerializer[*states.ComputeState]("ComputeState")
+	unserializer := encodings2.NewGobUnserializer[*states.ComputeState]("ComputeState")
+	encryptor := encodings2.NewEncryptor[*states.ComputeState](serializer)
 	err = encryptor.Initialize(key)
 	if err != nil {
 		t.Fatalf("Failed to initialize Encryptor: %v", err)
 	}
 
-	decryptor := encryptions.NewDecryptor[*states.ComputeState](unserializer)
+	decryptor := encodings2.NewDecryptor[*states.ComputeState](unserializer)
 	err = decryptor.Initialize(key)
 	if err != nil {
 		t.Fatalf("Failed to initialize Decryptor: %v", err)
@@ -69,7 +68,7 @@ func TestDecrypt(t *testing.T) {
 	}{
 		{
 			name:        "Normal 8x8 board",
-			data:        states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil),
+			data:        states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil, nil),
 			expectError: false,
 		},
 	}
@@ -112,32 +111,32 @@ func TestDecrypt(t *testing.T) {
 }
 
 func TestDecryptorWithWrongKey(t *testing.T) {
-	key1, err := encryptions.GenerateKey(32)
+	key1, err := encodings2.GenerateKey(32)
 	if err != nil {
 		t.Fatalf("Failed to generate key1: %v", err)
 	}
 
-	key2, err := encryptions.GenerateKey(32)
+	key2, err := encodings2.GenerateKey(32)
 	if err != nil {
 		t.Fatalf("Failed to generate key2: %v", err)
 	}
 
-	serializer := encryptions.NewGobSerializer[*states.ComputeState]("ComputeState")
-	unserializer := encryptions.NewGobUnserializer[*states.ComputeState]("ComputeState")
+	serializer := encodings2.NewGobSerializer[*states.ComputeState]("ComputeState")
+	unserializer := encodings2.NewGobUnserializer[*states.ComputeState]("ComputeState")
 
-	encryptor := encryptions.NewEncryptor[*states.ComputeState](serializer)
+	encryptor := encodings2.NewEncryptor[*states.ComputeState](serializer)
 	err = encryptor.Initialize(key1)
 	if err != nil {
 		t.Fatalf("Failed to initialize Encryptor with key1: %v", err)
 	}
 
-	decryptor := encryptions.NewDecryptor[*states.ComputeState](unserializer)
+	decryptor := encodings2.NewDecryptor[*states.ComputeState](unserializer)
 	err = decryptor.Initialize(key2)
 	if err != nil {
 		t.Fatalf("Failed to initialize Decryptor with key2: %v", err)
 	}
 
-	data := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
+	data := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil, nil)
 
 	ciphertext, err := encryptor.Encrypt(data)
 	if err != nil {
@@ -152,14 +151,14 @@ func TestDecryptorWithWrongKey(t *testing.T) {
 }
 
 func TestDecryptorDecryptDataLengthLessThanNonceSize(t *testing.T) {
-	key, err := encryptions.GenerateKey(32)
+	key, err := encodings2.GenerateKey(32)
 	if err != nil {
 		t.Fatalf("Failed to generate key: %v", err)
 	}
 
-	unserializer := encryptions.NewGobUnserializer[*states.ComputeState]("ComputeState")
+	unserializer := encodings2.NewGobUnserializer[*states.ComputeState]("ComputeState")
 
-	decryptor := encryptions.NewDecryptor[*states.ComputeState](unserializer)
+	decryptor := encodings2.NewDecryptor[*states.ComputeState](unserializer)
 	err = decryptor.Initialize(key)
 	if err != nil {
 		t.Fatalf("Failed to initialize Decryptor: %v", err)
@@ -180,22 +179,22 @@ func TestDecryptorDecryptDataLengthLessThanNonceSize(t *testing.T) {
 }
 
 func TestDecryptorDecryptEmptyString(t *testing.T) {
-	key, err := encryptions.GenerateKey(32)
+	key, err := encodings2.GenerateKey(32)
 	if err != nil {
 		t.Fatalf("Failed to generate key: %v", err)
 	}
 
-	serializer := encryptions.NewGobSerializer[*states.ComputeState]("ComputeState")
-	unserializer := encryptions.NewGobUnserializer[*states.ComputeState]("ComputeState")
+	serializer := encodings2.NewGobSerializer[*states.ComputeState]("ComputeState")
+	unserializer := encodings2.NewGobUnserializer[*states.ComputeState]("ComputeState")
 
-	decryptor := encryptions.NewDecryptor[*states.ComputeState](unserializer)
+	decryptor := encodings2.NewDecryptor[*states.ComputeState](unserializer)
 	err = decryptor.Initialize(key)
 	if err != nil {
 		t.Fatalf("Failed to initialize Decryptor: %v", err)
 	}
 
-	data := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
-	encrypter := encryptions.NewEncryptor[*states.ComputeState](serializer)
+	data := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil, nil)
+	encrypter := encodings2.NewEncryptor[*states.ComputeState](serializer)
 	err = encrypter.Initialize(key)
 	if err != nil {
 		t.Fatalf("Encryption initialize failed: %v", err)

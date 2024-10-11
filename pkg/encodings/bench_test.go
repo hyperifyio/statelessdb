@@ -1,13 +1,13 @@
 // Copyright (c) 2024. Jaakko Heusala <jheusala@iki.fi>. All rights reserved.
 // Licensed under the FSL-1.1-MIT, see LICENSE.md in the project root for details.
 
-package encryptions_test
+package encodings_test
 
 import (
 	"bytes"
 	"encoding/gob"
 	"github.com/google/uuid"
-	"statelessdb/internal/encryptions"
+	encodings2 "statelessdb/pkg/encodings"
 	"statelessdb/pkg/states"
 	"testing"
 )
@@ -15,7 +15,7 @@ import (
 func BenchmarkEncryptorDecryptor(b *testing.B) {
 
 	dtoName := "ComputeState"
-	dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
+	dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil, nil)
 
 	//dtoName := "states.ComputeState"
 	//dto := &states.ComputeState{
@@ -28,7 +28,7 @@ func BenchmarkEncryptorDecryptor(b *testing.B) {
 	//	},
 	//}
 
-	key, err := encryptions.GenerateKey(32)
+	key, err := encodings2.GenerateKey(32)
 	if err != nil {
 		b.Fatalf("Failed to generate key: %v", err)
 	}
@@ -37,16 +37,16 @@ func BenchmarkEncryptorDecryptor(b *testing.B) {
 
 	b.Run("GOB", func(b *testing.B) {
 
-		gobSerializer := encryptions.NewGobSerializer[*states.ComputeState](dtoName)
-		gobUnserializer := encryptions.NewGobUnserializer[*states.ComputeState](dtoName)
+		gobSerializer := encodings2.NewGobSerializer[*states.ComputeState](dtoName)
+		gobUnserializer := encodings2.NewGobUnserializer[*states.ComputeState](dtoName)
 
-		gobEncryptor := encryptions.NewEncryptor[*states.ComputeState](gobSerializer)
+		gobEncryptor := encodings2.NewEncryptor[*states.ComputeState](gobSerializer)
 		err = gobEncryptor.Initialize(key)
 		if err != nil {
 			b.Fatalf("Failed to initialize dobEncryptor: %v", err)
 		}
 
-		gobDecryptor := encryptions.NewDecryptor[*states.ComputeState](gobUnserializer)
+		gobDecryptor := encodings2.NewDecryptor[*states.ComputeState](gobUnserializer)
 		err = gobDecryptor.Initialize(key)
 		if err != nil {
 			b.Fatalf("Failed to initialize gobDecryptor: %v", err)
@@ -91,16 +91,16 @@ func BenchmarkEncryptorDecryptor(b *testing.B) {
 
 	b.Run("JSON", func(b *testing.B) {
 
-		jsonSerializer := encryptions.NewJsonSerializer[*states.ComputeState](dtoName)
-		jsonUnserializer := encryptions.NewJsonUnserializer[*states.ComputeState](dtoName)
+		jsonSerializer := encodings2.NewJsonSerializer[*states.ComputeState](dtoName)
+		jsonUnserializer := encodings2.NewJsonUnserializer[*states.ComputeState](dtoName)
 
-		jsonEncryptor := encryptions.NewEncryptor[*states.ComputeState](jsonSerializer)
+		jsonEncryptor := encodings2.NewEncryptor[*states.ComputeState](jsonSerializer)
 		err = jsonEncryptor.Initialize(key)
 		if err != nil {
 			b.Fatalf("Failed to initialize jsonEncryptor: %v", err)
 		}
 
-		jsonDecryptor := encryptions.NewDecryptor[*states.ComputeState](jsonUnserializer)
+		jsonDecryptor := encodings2.NewDecryptor[*states.ComputeState](jsonUnserializer)
 		err = jsonDecryptor.Initialize(key)
 		if err != nil {
 			b.Fatalf("Failed to initialize jsonDecryptor: %v", err)
@@ -148,7 +148,7 @@ func Benchmark_GOB(b *testing.B) {
 	b.Run("Encode", func(b *testing.B) {
 
 		b.Run("with_NewEncoder", func(b *testing.B) {
-			dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
+			dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil, nil)
 			b.StopTimer()
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
@@ -170,7 +170,7 @@ func Benchmark_GOB(b *testing.B) {
 		b.Run("with_NewDecoder", func(b *testing.B) {
 			b.StopTimer()
 
-			dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
+			dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil, nil)
 
 			// Serialize the DTO once outside the loop to use in decoding
 			var buf bytes.Buffer
@@ -208,7 +208,7 @@ func Benchmark_GOB(b *testing.B) {
 	b.Run("Encode_and_Decode", func(b *testing.B) {
 
 		b.Run("with_NewEncoder_and_NewDecoder", func(b *testing.B) {
-			dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
+			dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil, nil)
 			b.StopTimer()
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
@@ -252,7 +252,7 @@ func Benchmark_GOB(b *testing.B) {
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 
-				dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
+				dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil, nil)
 
 				// Serialize using GOB
 				var decoded states.ComputeState
@@ -287,7 +287,7 @@ func Benchmark_JSON(b *testing.B) {
 	b.Run("Decode", func(b *testing.B) {
 
 		b.Run("with_NewDecoder", func(b *testing.B) {
-			dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
+			dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil, nil)
 
 			// Serialize the DTO once outside the loop to use in decoding
 			var buf bytes.Buffer
@@ -329,7 +329,7 @@ func Benchmark_JSON(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 
 				var buf bytes.Buffer
-				dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
+				dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil, nil)
 
 				b.StartTimer()
 				encoder := json.NewEncoder(&buf)
@@ -351,7 +351,7 @@ func Benchmark_JSON(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 
 			// Change each dto a bit
-			dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
+			dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil, nil)
 			dto.Created = int64(i)
 			var decoded states.ComputeState
 
@@ -392,7 +392,7 @@ func Benchmark_JSON(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 
 				var decoded states.ComputeState
-				dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
+				dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil, nil)
 
 				b.StartTimer()
 
@@ -425,7 +425,7 @@ func Benchmark_JSON(b *testing.B) {
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 
-			dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
+			dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil, nil)
 			dto.Created = int64(i)
 
 			b.StartTimer()
@@ -442,7 +442,7 @@ func Benchmark_JSON(b *testing.B) {
 		b.StopTimer()
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil)
+			dto := states.NewComputeState(uuid.New(), uuid.New(), 0, 0, nil, nil, nil)
 			dto.Created = int64(i)
 
 			// Serialize the DTO once outside the loop to use in unmarshalling

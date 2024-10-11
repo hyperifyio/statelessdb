@@ -1,10 +1,10 @@
 // Copyright (c) 2024. Jaakko Heusala <jheusala@iki.fi>. All rights reserved.
 // Licensed under the FSL-1.1-MIT, see LICENSE.md in the project root for details.
 
-package encryptions_test
+package encodings_test
 
 import (
-	"statelessdb/internal/encryptions"
+	encodings2 "statelessdb/pkg/encodings"
 	"sync"
 	"testing"
 )
@@ -14,8 +14,8 @@ func TestGobUnserializer_UnserializeBasic(t *testing.T) {
 
 	data := []byte("Hello, Unserialize!")
 
-	unserializer := encryptions.NewGobUnserializer[*[]byte]("")
-	serializer := encryptions.NewGobSerializer[[]byte]("")
+	unserializer := encodings2.NewGobUnserializer[*[]byte]("")
+	serializer := encodings2.NewGobSerializer[[]byte]("")
 
 	state, err := serializer.Serialize(data)
 	defer state.Release()
@@ -37,7 +37,7 @@ func TestGobUnserializer_UnserializeBasic(t *testing.T) {
 
 // TestGobUnserializer_UnserializeStruct tests unserialization of a struct.
 func TestGobUnserializer_UnserializeStruct(t *testing.T) {
-	unserializer := encryptions.NewGobUnserializer[*SampleStruct]("SampleStruct")
+	unserializer := encodings2.NewGobUnserializer[*SampleStruct]("SampleStruct")
 	data := &SampleStruct{
 		ID:      1,
 		Name:    "Unserialize Test",
@@ -47,7 +47,7 @@ func TestGobUnserializer_UnserializeStruct(t *testing.T) {
 			"info2": "data2",
 		},
 	}
-	serializer := encryptions.NewGobSerializer[*SampleStruct]("SampleStruct")
+	serializer := encodings2.NewGobSerializer[*SampleStruct]("SampleStruct")
 
 	state, err := serializer.Serialize(data)
 	defer state.Release()
@@ -68,7 +68,7 @@ func TestGobUnserializer_UnserializeStruct(t *testing.T) {
 
 //// TestGobUnserializer_UnserializeUnsupportedType tests unserialization of unsupported type.
 //func TestGobUnserializer_UnserializeUnsupportedType(t *testing.T) {
-//	unserializer := encryptions.NewGobUnserializer[chan int]()
+//	unserializer := encodings.NewGobUnserializer[chan int]()
 //
 //	// Channels are not supported by gob, so serialization would fail before unserialization
 //	// Thus, this test is redundant. Instead, you can ensure that Serialize fails.
@@ -77,12 +77,12 @@ func TestGobUnserializer_UnserializeStruct(t *testing.T) {
 
 // TestGobUnserializer_Concurrency tests unserialization under concurrent access.
 func TestGobUnserializer_Concurrency(t *testing.T) {
-	unserializer := encryptions.NewGobUnserializer[*SampleStruct]("SampleStruct")
+	unserializer := encodings2.NewGobUnserializer[*SampleStruct]("SampleStruct")
 	wg := sync.WaitGroup{}
 	numGoroutines := 50
 	numIterations := 100
 
-	serializer := encryptions.NewGobSerializer[*SampleStruct]("SampleStruct")
+	serializer := encodings2.NewGobSerializer[*SampleStruct]("SampleStruct")
 
 	for i := 0; i < numGoroutines; i++ {
 		wg.Add(1)
@@ -124,7 +124,7 @@ func TestGobUnserializer_Concurrency(t *testing.T) {
 
 // TestGobUnserializer_UnserializeInvalidData tests unserialization of invalid data.
 func TestGobUnserializer_UnserializeInvalidData(t *testing.T) {
-	unserializer := encryptions.NewGobUnserializer[*SampleStruct]("SampleStruct")
+	unserializer := encodings2.NewGobUnserializer[*SampleStruct]("SampleStruct")
 
 	// Create invalid serialized data
 	invalidData := []byte("invalid gob data")

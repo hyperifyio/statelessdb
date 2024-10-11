@@ -4,20 +4,20 @@
 package requests
 
 import (
-	"statelessdb/internal/encryptions"
+	encodings2 "statelessdb/pkg/encodings"
 	"statelessdb/pkg/errors"
 )
 
 type EncryptedRequestManager[T interface{}, R Request, D interface{}] struct {
-	Encryptor  *encryptions.Encryptor[T]
-	Decryptor  *encryptions.Decryptor[T]
+	Encryptor  *encodings2.Encryptor[T]
+	Decryptor  *encodings2.Decryptor[T]
 	NewState   func() T
 	NewRequest func() R
 }
 
 func NewEncryptedRequestManager[T interface{}, R Request, D interface{}](
-	encryptor *encryptions.Encryptor[T],
-	decryptor *encryptions.Decryptor[T],
+	encryptor *encodings2.Encryptor[T],
+	decryptor *encodings2.Decryptor[T],
 	newState func() T,
 	newRequest func() R,
 ) *EncryptedRequestManager[T, R, D] {
@@ -73,6 +73,7 @@ func (h *EncryptedRequestManager[T, R, D]) HandleWith(handleRequest ApiRequestHa
 	return &RequestResponseManager[T, R, D]{
 		h,
 		handleRequest,
+		nil,
 		nil,
 	}
 }

@@ -11,13 +11,12 @@ import (
 	"net/http/httptest"
 	"statelessdb/pkg/apis"
 	"statelessdb/pkg/dtos"
+	encodings2 "statelessdb/pkg/encodings"
 	"statelessdb/pkg/requests"
 	"statelessdb/pkg/states"
 	"time"
 
 	"testing"
-
-	"statelessdb/internal/encryptions"
 )
 
 func BenchmarkHandleComputeStateRequest(b *testing.B) {
@@ -25,20 +24,20 @@ func BenchmarkHandleComputeStateRequest(b *testing.B) {
 
 	now := time.Now().UnixMilli()
 
-	serverKey, err := encryptions.GenerateKey(32)
+	serverKey, err := encodings2.GenerateKey(32)
 	if err != nil {
 		b.Fatalf("Could not create server key: %v", err)
 	}
 
-	serializer := encryptions.NewJsonSerializer[*states.ComputeState]("ComputeState")
-	unserializer := encryptions.NewJsonUnserializer[*states.ComputeState]("ComputeState")
+	serializer := encodings2.NewJsonSerializer[*states.ComputeState]("ComputeState")
+	unserializer := encodings2.NewJsonUnserializer[*states.ComputeState]("ComputeState")
 
-	encryptor := encryptions.NewEncryptor[*states.ComputeState](serializer)
+	encryptor := encodings2.NewEncryptor[*states.ComputeState](serializer)
 	if err = encryptor.Initialize(serverKey); err != nil {
 		b.Fatalf("Could not create encryptor: %v", err)
 	}
 
-	decryptor := encryptions.NewDecryptor[*states.ComputeState](unserializer)
+	decryptor := encodings2.NewDecryptor[*states.ComputeState](unserializer)
 	if err = decryptor.Initialize(serverKey); err != nil {
 		b.Fatalf("Could not create decryptor: %v", err)
 	}
@@ -53,19 +52,12 @@ func BenchmarkHandleComputeStateRequest(b *testing.B) {
 
 	requestHandler := func(r *requests.ComputeRequest, state *states.ComputeState) (*states.ComputeState, error) {
 		if state == nil {
-			return states.NewComputeState(
-				uuid.New(),
-				uuid.New(),
-				r.Received,
-				r.Received,
-				nil,
-				nil,
-			), nil
+			return states.NewComputeState(uuid.New(), uuid.New(), r.Received, r.Received, nil, nil, nil), nil
 		}
 		return state, nil
 	}
 
-	responseHandler := func(state *states.ComputeState, private string) *dtos.ComputeResponseDTO {
+	responseHandler := func(state *states.ComputeState, private string) interface{} {
 		return dtos.NewComputeResponseDTO(
 			state.Id,
 			state.Owner,
@@ -88,14 +80,7 @@ func BenchmarkHandleComputeStateRequest(b *testing.B) {
 			public := make(map[string]interface{})
 			private := make(map[string]interface{})
 
-			state := states.NewComputeState(
-				uuid.New(),
-				uuid.New(),
-				now,
-				now,
-				public,
-				private,
-			)
+			state := states.NewComputeState(uuid.New(), uuid.New(), now, now, public, private, nil)
 
 			var privateString string
 			if privateString, err = encryptor.Encrypt(state); err != nil {

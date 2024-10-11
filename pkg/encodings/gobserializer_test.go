@@ -1,25 +1,21 @@
 // Copyright (c) 2024. Jaakko Heusala <jheusala@iki.fi>. All rights reserved.
 // Licensed under the FSL-1.1-MIT, see LICENSE.md in the project root for details.
 
-package encryptions_test
+package encodings_test
 
 import (
 	"bytes"
+	"encoding/gob"
 	"fmt"
+	"statelessdb/internal/helpers"
+	"statelessdb/pkg/encodings"
 	"sync"
 	"testing"
-
-	jsoniter "github.com/json-iterator/go"
-
-	"statelessdb/internal/encryptions"
-	"statelessdb/internal/helpers"
 )
 
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
-
-// TestJsonSerializer_SerializeBasicTypes tests serialization of basic types.
-func TestJsonSerializer_SerializeBasicTypes_String(t *testing.T) {
-	serializer := encryptions.NewJsonSerializer[string]("string")
+// TestGobSerializer_SerializeBasicTypes tests serialization of basic types.
+func TestGobSerializer_SerializeBasicTypes_String(t *testing.T) {
+	serializer := encodings.NewGobSerializer[string]("string")
 
 	// Test string
 	strData := "Hello, World!"
@@ -31,7 +27,7 @@ func TestJsonSerializer_SerializeBasicTypes_String(t *testing.T) {
 	serializedStr := state.Bytes()
 
 	var decodedStr string
-	decoder := json.NewDecoder(bytes.NewReader(serializedStr))
+	decoder := gob.NewDecoder(bytes.NewReader(serializedStr))
 	if err := decoder.Decode(&decodedStr); err != nil {
 		t.Fatalf("Failed to deserialize string: %v", err)
 	}
@@ -41,21 +37,21 @@ func TestJsonSerializer_SerializeBasicTypes_String(t *testing.T) {
 	}
 }
 
-// TestJsonSerializer_SerializeBasicTypes tests serialization of basic types.
-func TestJsonSerializer_SerializeBasicTypes_Int(t *testing.T) {
-	serializer := encryptions.NewJsonSerializer[int]("int")
+// TestGobSerializer_SerializeBasicTypes tests serialization of basic types.
+func TestGobSerializer_SerializeBasicTypes_Int(t *testing.T) {
+	serializer := encodings.NewGobSerializer[int]("int")
 
 	// Test integer
 	intData := 42
 	state, err := serializer.Serialize(intData)
-	defer state.Release()
-	serializedInt := state.Bytes()
 	if err != nil {
 		t.Fatalf("Failed to serialize int: %v", err)
 	}
+	defer state.Release()
+	serializedInt := state.Bytes()
 
 	var decodedInt int
-	decoder := json.NewDecoder(bytes.NewReader(serializedInt))
+	decoder := gob.NewDecoder(bytes.NewReader(serializedInt))
 	if err := decoder.Decode(&decodedInt); err != nil {
 		t.Fatalf("Failed to deserialize int: %v", err)
 	}
@@ -66,9 +62,9 @@ func TestJsonSerializer_SerializeBasicTypes_Int(t *testing.T) {
 
 }
 
-// TestJsonSerializer_SerializeStruct tests serialization of a struct.
-func TestJsonSerializer_SerializeStruct(t *testing.T) {
-	serializer := encryptions.NewJsonSerializer[*SampleStruct]("SampleStruct")
+// TestGobSerializer_SerializeStruct tests serialization of a struct.
+func TestGobSerializer_SerializeStruct(t *testing.T) {
+	serializer := encodings.NewGobSerializer[*SampleStruct]("SampleStruct")
 
 	original := &SampleStruct{
 		ID:      1,
@@ -81,14 +77,14 @@ func TestJsonSerializer_SerializeStruct(t *testing.T) {
 	}
 
 	state, err := serializer.Serialize(original)
-	defer state.Release()
-	serialized := state.Bytes()
 	if err != nil {
 		t.Fatalf("Failed to serialize struct: %v", err)
 	}
+	defer state.Release()
+	serialized := state.Bytes()
 
 	var decoded SampleStruct
-	decoder := json.NewDecoder(bytes.NewReader(serialized))
+	decoder := gob.NewDecoder(bytes.NewReader(serialized))
 	if err := decoder.Decode(&decoded); err != nil {
 		t.Fatalf("Failed to deserialize struct: %v", err)
 	}
@@ -106,11 +102,11 @@ func TestJsonSerializer_SerializeStruct(t *testing.T) {
 	}
 }
 
-//// TestJsonSerializer_SerializeUnsupportedType tests serialization of an unsupported type.
-//func TestJsonSerializer_SerializeUnsupportedType(t *testing.T) {
-//	serializer := encryptions.NewJsonSerializer[chan int]()
+//// TestGobSerializer_SerializeUnsupportedType tests serialization of an unsupported type.
+//func TestGobSerializer_SerializeUnsupportedType(t *testing.T) {
+//	serializer := encodings.NewGobSerializer[chan int]()
 //
-//	// Channels are not supported by json
+//	// Channels are not supported by gob
 //	ch := make(chan int)
 //
 //	_, err := serializer.Serialize(ch)
@@ -119,9 +115,9 @@ func TestJsonSerializer_SerializeStruct(t *testing.T) {
 //	}
 //}
 
-// TestJsonSerializer_Concurrency tests serialization under concurrent access.
-func TestJsonSerializer_Concurrency(t *testing.T) {
-	serializer := encryptions.NewJsonSerializer[*SampleStruct]("SampleStruct")
+// TestGobSerializer_Concurrency tests serialization under concurrent access.
+func TestGobSerializer_Concurrency(t *testing.T) {
+	serializer := encodings.NewGobSerializer[*SampleStruct]("SampleStruct")
 
 	wg := sync.WaitGroup{}
 	numGoroutines := 100
@@ -144,15 +140,16 @@ func TestJsonSerializer_Concurrency(t *testing.T) {
 				state, err := serializer.Serialize(data)
 				if err != nil {
 					t.Errorf("Failed to serialize data in goroutine %d: %v", id, err)
+					state.Release()
 					return
 				}
 				serialized := state.Bytes()
 
 				decoded := &SampleStruct{}
-				decoder := json.NewDecoder(bytes.NewReader(serialized))
+				decoder := gob.NewDecoder(bytes.NewReader(serialized))
 				if err := decoder.Decode(decoded); err != nil {
-					state.Release()
 					t.Errorf("Failed to deserialize data in goroutine %d: %v", id, err)
+					state.Release()
 					return
 				}
 
@@ -168,9 +165,9 @@ func TestJsonSerializer_Concurrency(t *testing.T) {
 	wg.Wait()
 }
 
-// TestJsonSerializer_Once tests only once
-func TestJsonSerializer_Once(t *testing.T) {
-	serializer := encryptions.NewJsonSerializer[*SampleStruct]("SampleStruct")
+// TestGobSerializer_Once tests only once
+func TestGobSerializer_Once(t *testing.T) {
+	serializer := encodings.NewGobSerializer[*SampleStruct]("SampleStruct")
 	data := &SampleStruct{
 		ID:      1,
 		Name:    "Once Test",
@@ -188,7 +185,7 @@ func TestJsonSerializer_Once(t *testing.T) {
 	serialized := state.Bytes()
 
 	var decoded SampleStruct
-	decoder := json.NewDecoder(bytes.NewReader(serialized))
+	decoder := gob.NewDecoder(bytes.NewReader(serialized))
 	if err := decoder.Decode(&decoded); err != nil {
 		t.Errorf("Failed to deserialize data: %v", err)
 		return

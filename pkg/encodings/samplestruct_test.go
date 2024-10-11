@@ -1,4 +1,4 @@
-package encryptions_test
+package encodings_test
 
 import (
 	"statelessdb/internal/helpers"

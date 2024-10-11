@@ -5,14 +5,16 @@ package requests
 
 type ResponseManager interface {
 	ProcessBytes(body []byte) (interface{}, error)
+	Methods() []string
 }
 
-type CreateResponseFunc[T interface{}, D interface{}] func(state T, private string) D
+type CreateResponseFunc[T interface{}] func(state T, private string) interface{}
 
 type RequestResponseManager[T interface{}, R Request, D interface{}] struct {
 	parent         *EncryptedRequestManager[T, R, D]
 	handleRequest  ApiRequestHandlerFunc[T, R]
-	handleResponse CreateResponseFunc[T, D]
+	handleResponse CreateResponseFunc[T]
+	methods        []string
 }
 
 var _ ResponseManager = &RequestResponseManager[any, Request, any]{}
@@ -26,10 +28,14 @@ func (r *RequestResponseManager[T, R, D]) ProcessBytes(body []byte) (interface{}
 		return dto, err
 	}
 
-	state, err := r.parent.DecryptState(req.Private())
-	if err != nil {
-		var dto interface{}
-		return dto, err
+	var state T
+	privateString := req.Private()
+	if privateString != "" {
+		state, err = r.parent.DecryptState(privateString)
+		if err != nil {
+			var dto interface{}
+			return dto, err
+		}
 	}
 
 	state, err = r.handleRequest(req, state)
@@ -52,8 +58,18 @@ func (r *RequestResponseManager[T, R, D]) ProcessBytes(body []byte) (interface{}
 	return dto, nil
 }
 
+func (r *RequestResponseManager[T, R, D]) Methods() []string {
+	return r.methods
+}
+
 // WithResponse configures a response DTO handler
-func (r *RequestResponseManager[T, R, D]) WithResponse(handler CreateResponseFunc[T, D]) *RequestResponseManager[T, R, D] {
+func (r *RequestResponseManager[T, R, D]) WithResponse(handler CreateResponseFunc[T]) *RequestResponseManager[T, R, D] {
 	r.handleResponse = handler
+	return r
+}
+
+// WithMethods configures which methods are accepted
+func (r *RequestResponseManager[T, R, D]) WithMethods(methods ...string) *RequestResponseManager[T, R, D] {
+	r.methods = append(r.methods, methods...)
 	return r
 }
