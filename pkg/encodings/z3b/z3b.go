@@ -11,9 +11,10 @@ import (
 // Constants
 const (
 	bufferSize       = 4096
-	separator        = '_' // Space character as control character
+	separator1       = '_' // Set +1 control character
+	separator2       = '-' // Set +2 control character
 	invalidCharacter = '"' // Invalid character
-	printableSet     = "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^`abcdefghijklmnopqrstuvwxyz{|}~"
+	printableSet     = "!#$%&()*+,./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^abcdefghijklmnopqrstuvwxyz{|}~"
 	numSets          = 3   // Number of binary sets
 	setSize          = 86  // Number of characters in printableSet
 	totalBytes       = 256 // Total number of byte values (0-255)
@@ -135,9 +136,9 @@ func initializeMappings() {
 		}
 	}
 
-	//// Verify that separator is not present in printableBytes
+	//// Verify that separator1 is not present in printableBytes
 	//for i, r := range printableBytes {
-	//	if r == separator {
+	//	if r == separator1 {
 	//		panic(fmt.Sprintf("Separator character is present in index %d", i))
 	//	}
 	//}
@@ -176,20 +177,29 @@ func Encode(data []byte) ([]byte, error) {
 		r := byteToCharSet[currentSet][b]
 		if r == 0 {
 			// Switch to next set
-			result[idx] = separator
-			idx++
 			currentSet = (currentSet + 1) % numSets
 			r = byteToCharSet[currentSet][b]
 			if r == 0 {
 				// If still not found, switch to the next set
-				result[idx] = separator
-				idx++
 				currentSet = (currentSet + 1) % numSets
 				r = byteToCharSet[currentSet][b]
 				if r == 0 {
 					return nil, fmt.Errorf("byte value cannot be encoded: %d", b)
 				}
+
+				result[idx] = separator2
+				idx++
+				result[idx] = r
+				idx++
+				continue
 			}
+
+			result[idx] = separator1
+			idx++
+			result[idx] = r
+			idx++
+			continue
+
 		}
 		result[idx] = r
 		idx++
@@ -219,9 +229,15 @@ func Decode(encoded []byte) ([]byte, error) {
 	for i := 0; i < l; i++ {
 		c := encoded[i]
 
-		if c == separator {
+		if c == separator1 {
 			// Toggle to the next set
 			currentSet = (currentSet + 1) % numSets
+			continue
+		}
+
+		if c == separator2 {
+			// Toggle to the next set
+			currentSet = (currentSet + 2) % numSets
 			continue
 		}
 
