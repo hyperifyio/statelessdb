@@ -15,13 +15,12 @@ import (
 )
 
 // ApiEventHandler is called to implement GET /api/v1/events which implements an HTTP long polling end point
-func ApiEventHandler(bus *events.EventBus[uuid.UUID, interface{}]) requests.ApiRequestHandlerFunc[*states.ComputeState, *requests.ComputeRequest] {
-
-	const (
-		timeoutTime         = time.Second * 10 // Default request timeout time
-		eventExpirationTime = 20 * time.Second // Time until events expire
-		intervalTime        = 30 * time.Second // Interval to clean up expired events
-	)
+func ApiEventHandler(
+	bus events.EventBus[uuid.UUID, interface{}],
+	timeoutTime,
+	eventExpirationTime,
+	intervalTime time.Duration,
+) requests.ApiRequestHandlerFunc[*states.ComputeState, *requests.ComputeRequest] {
 
 	manager := events.NewEventManager(bus, eventExpirationTime, intervalTime) // unsubscribe timeout and interval to clean up events
 
@@ -70,7 +69,7 @@ func ApiEventHandler(bus *events.EventBus[uuid.UUID, interface{}]) requests.ApiR
 }
 
 // NewEventResponseDTO handles internal events to public DTO
-func NewEventResponseDTO(bus *events.EventBus[uuid.UUID, interface{}]) requests.CreateResponseFunc[*states.ComputeState] {
+func NewEventResponseDTO(bus events.EventBus[uuid.UUID, interface{}]) requests.CreateResponseFunc[*states.ComputeState] {
 	return func(state *states.ComputeState, private string) interface{} {
 		now := state.Updated
 		evList := state.Events()

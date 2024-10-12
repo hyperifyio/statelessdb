@@ -14,14 +14,14 @@ type EventManager[T comparable, D interface{}] struct {
 	subscribers      map[T][]chan int64   // Notification channels per resource (state.Id)
 	buffers          map[T][]*Event[T, D] // Event buffers per resource (state.Id)
 	mu               sync.Mutex           // Thread safety lock
-	eventBus         *EventBus[T, D]      // Global event bus
+	eventBus         EventBus[T, D]       // Global event bus
 	eventChannel     chan *Event[T, D]    // Internal event channel
 	bufferExpiration time.Duration        // Duration after which events expire from the buffer
 	cleanupInterval  time.Duration        // Interval to clean up events
 }
 
 func NewEventManager[T comparable, D interface{}](
-	bus *EventBus[T, D],
+	bus EventBus[T, D],
 	bufferExpiration time.Duration,
 	cleanupInterval time.Duration,
 ) *EventManager[T, D] {

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"os"
+	"time"
 
 	"statelessdb/pkg/apis"
 	"statelessdb/pkg/dtos"
@@ -21,6 +22,12 @@ import (
 )
 
 import _ "net/http/pprof"
+
+const (
+	eventTimeoutTime         = time.Second * 10 // Default request timeout time
+	eventExpirationTime      = 20 * time.Second // Time until events expire
+	eventCleanupIntervalTime = 30 * time.Second // Interval to clean up expired events
+)
 
 func main() {
 
@@ -86,14 +93,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	eventBus := events.NewEventBus[uuid.UUID, interface{}]()
+	eventBus := events.NewLocalEventBus[uuid.UUID, interface{}]()
 
 	server := apis.NewServer()
 	if *enablePprof {
 		server.EnablePprof()
 	}
 	server.Handle("/api/v1", computeRequestManager.HandleWith(ApiRequestHandler(eventBus)).WithResponse(NewComputeResponseDTO(eventBus)).WithMethods("GET", "POST"))
-	server.Handle("/api/v1/events", computeRequestManager.HandleWith(ApiEventHandler(eventBus)).WithResponse(NewEventResponseDTO(eventBus)).WithMethods("GET", "POST"))
+	server.Handle("/api/v1/events", computeRequestManager.HandleWith(ApiEventHandler(eventBus, eventTimeoutTime, eventExpirationTime, eventCleanupIntervalTime)).WithResponse(NewEventResponseDTO(eventBus)).WithMethods("GET", "POST"))
 
 	// Start the server
 	log.Infof("Starting server at %s", listenTo)

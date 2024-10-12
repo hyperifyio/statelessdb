@@ -12,7 +12,7 @@ import (
 )
 
 // ApiRequestHandler is called to implement POST /api/v1 which implements compute actions on a state
-func ApiRequestHandler(bus *events.EventBus[uuid.UUID, interface{}]) requests.ApiRequestHandlerFunc[*states.ComputeState, *requests.ComputeRequest] {
+func ApiRequestHandler(bus events.EventBus[uuid.UUID, interface{}]) requests.ApiRequestHandlerFunc[*states.ComputeState, *requests.ComputeRequest] {
 	return func(r *requests.ComputeRequest, state *states.ComputeState) (*states.ComputeState, error) {
 
 		now := states.NewTimeNow()
@@ -34,7 +34,7 @@ func ApiRequestHandler(bus *events.EventBus[uuid.UUID, interface{}]) requests.Ap
 	}
 }
 
-func NewComputeResponseDTO(bus *events.EventBus[uuid.UUID, interface{}]) requests.CreateResponseFunc[*states.ComputeState] {
+func NewComputeResponseDTO(bus events.EventBus[uuid.UUID, interface{}]) requests.CreateResponseFunc[*states.ComputeState] {
 	return func(state *states.ComputeState, private string) interface{} {
 		dto := dtos.NewComputeResponseDTO(
 			state.Id,
