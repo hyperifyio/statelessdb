@@ -46,12 +46,14 @@ func (s *Server) BuildHandler(handler requests.ResponseManager) func(w http.Resp
 			return
 		}
 
+		//log.Debugf("[Server.BuildHandler]: Request body: %v", requestBody)
 		dto, err := handler.ProcessBytes(requestBody)
 		if err != nil {
-			log.Errorf("[Server.BuildHandler]: Failed to read body: %v", err)
+			log.Errorf("[Server.BuildHandler]: Failed to process body: %v", err)
 			sendHttpError(w, BadBodyError, http.StatusBadRequest)
 			return
 		}
+		//log.Debugf("[Server.BuildHandler]: Processed as dto: %v", dto)
 
 		// Prepare response as JSON
 		encoderState := encodings.GetJsonEncoderState()
@@ -62,9 +64,13 @@ func (s *Server) BuildHandler(handler requests.ResponseManager) func(w http.Resp
 			return
 		}
 
+		bytes := encoderState.Bytes()
+
+		//log.Debugf("[Server.BuildHandler]: writing bytes: %v", bytes)
+
 		// Write response bytes to the HTTP request
 		w.Header().Set("Content-Type", "application/json")
-		if _, err := w.Write(encoderState.Bytes()); err != nil {
+		if _, err := w.Write(bytes); err != nil {
 			log.Errorf("[Server.BuildHandler]: writing: error: %v", err)
 			sendHttpError(w, WritingBodyFailedError, http.StatusInternalServerError)
 			return

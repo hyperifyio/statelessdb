@@ -72,11 +72,7 @@ func main() {
 	}
 
 	newRequestDTO := func() *requests.ComputeRequest {
-		return requests.NewComputeRequest(
-			0,
-			nil,
-			"",
-		)
+		return &requests.ComputeRequest{}
 	}
 
 	computeRequestManager, err := requests.NewJsonRequestManager[*states.ComputeState, *requests.ComputeRequest, *dtos.ComputeResponseDTO](

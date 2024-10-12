@@ -4,12 +4,16 @@
 package encodings_test
 
 import (
+	"testing"
+
 	"bytes"
 	"encoding/gob"
+
 	"github.com/google/uuid"
-	encodings2 "statelessdb/pkg/encodings"
+
+	"statelessdb/pkg/encodings"
+	"statelessdb/pkg/encodings/json"
 	"statelessdb/pkg/states"
-	"testing"
 )
 
 func BenchmarkEncryptorDecryptor(b *testing.B) {
@@ -28,7 +32,7 @@ func BenchmarkEncryptorDecryptor(b *testing.B) {
 	//	},
 	//}
 
-	key, err := encodings2.GenerateKey(32)
+	key, err := encodings.GenerateKey(32)
 	if err != nil {
 		b.Fatalf("Failed to generate key: %v", err)
 	}
@@ -37,16 +41,16 @@ func BenchmarkEncryptorDecryptor(b *testing.B) {
 
 	b.Run("GOB", func(b *testing.B) {
 
-		gobSerializer := encodings2.NewGobSerializer[*states.ComputeState](dtoName)
-		gobUnserializer := encodings2.NewGobUnserializer[*states.ComputeState](dtoName)
+		gobSerializer := encodings.NewGobSerializer[*states.ComputeState](dtoName)
+		gobUnserializer := encodings.NewGobUnserializer[*states.ComputeState](dtoName)
 
-		gobEncryptor := encodings2.NewEncryptor[*states.ComputeState](gobSerializer)
+		gobEncryptor := encodings.NewEncryptor[*states.ComputeState](gobSerializer)
 		err = gobEncryptor.Initialize(key)
 		if err != nil {
 			b.Fatalf("Failed to initialize dobEncryptor: %v", err)
 		}
 
-		gobDecryptor := encodings2.NewDecryptor[*states.ComputeState](gobUnserializer)
+		gobDecryptor := encodings.NewDecryptor[*states.ComputeState](gobUnserializer)
 		err = gobDecryptor.Initialize(key)
 		if err != nil {
 			b.Fatalf("Failed to initialize gobDecryptor: %v", err)
@@ -91,16 +95,16 @@ func BenchmarkEncryptorDecryptor(b *testing.B) {
 
 	b.Run("JSON", func(b *testing.B) {
 
-		jsonSerializer := encodings2.NewJsonSerializer[*states.ComputeState](dtoName)
-		jsonUnserializer := encodings2.NewJsonUnserializer[*states.ComputeState](dtoName)
+		jsonSerializer := encodings.NewJsonSerializer[*states.ComputeState](dtoName)
+		jsonUnserializer := encodings.NewJsonUnserializer[*states.ComputeState](dtoName)
 
-		jsonEncryptor := encodings2.NewEncryptor[*states.ComputeState](jsonSerializer)
+		jsonEncryptor := encodings.NewEncryptor[*states.ComputeState](jsonSerializer)
 		err = jsonEncryptor.Initialize(key)
 		if err != nil {
 			b.Fatalf("Failed to initialize jsonEncryptor: %v", err)
 		}
 
-		jsonDecryptor := encodings2.NewDecryptor[*states.ComputeState](jsonUnserializer)
+		jsonDecryptor := encodings.NewDecryptor[*states.ComputeState](jsonUnserializer)
 		err = jsonDecryptor.Initialize(key)
 		if err != nil {
 			b.Fatalf("Failed to initialize jsonDecryptor: %v", err)

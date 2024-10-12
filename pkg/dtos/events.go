@@ -31,14 +31,17 @@ func NewEventDTO(
 type EventListDTO struct {
 	Created string      `json:"created"` // Created is the time when this event list was sent. You can use this to request more events after this time.
 	Payload []*EventDTO `json:"payload"` // Payload contains all events received
+	Private string      `json:"private"` // Private can be used to request next set of events. It contains information required to know when to
 }
 
 func NewEventListDTO(
 	created int64,
 	payload []*EventDTO,
+	private string,
 ) *EventListDTO {
 	return &EventListDTO{
 		Created: helpers.MillisToISO(created),
 		Payload: payload,
+		Private: private,
 	}
 }

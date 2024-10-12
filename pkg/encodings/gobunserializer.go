@@ -12,7 +12,7 @@ import (
 
 var gobDecoderPoolState = sync.Pool{
 	New: func() interface{} {
-		buf := getBytesBuffer()
+		buf := new(bytes.Buffer)
 		return &GobDecoderState{
 			buf,
 			gob.NewDecoder(buf),

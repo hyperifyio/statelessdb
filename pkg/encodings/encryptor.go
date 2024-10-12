@@ -10,6 +10,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"io"
+
 	"statelessdb/pkg/errors"
 )
 
@@ -21,9 +22,7 @@ type Encryptor[T interface{}] struct {
 	buf        bytes.Buffer
 }
 
-// NewEncryptor creates a new encryptor
-// - keySize should be at least 32
-// - nonceSize should be at least 12
+// NewEncryptor creates a new encryptor using a serializer
 func NewEncryptor[T interface{}](serializer Serializer[T]) *Encryptor[T] {
 	return &Encryptor[T]{serializer: serializer}
 }
@@ -32,7 +31,7 @@ func NewEncryptor[T interface{}](serializer Serializer[T]) *Encryptor[T] {
 func (e *Encryptor[T]) Initialize(key []byte) error {
 	var err error
 	if len(key) < MinimumKeySizeAES256 {
-		log.Errorf("[Encryptor.Initialize] key size %d less than minimum %d", len(key), MinimumKeySizeAES256)
+		log.Errorf("[Encryptor.Initialize]: Key size %d less than minimum %d", len(key), MinimumKeySizeAES256)
 		return errors.ErrEncryptorInitializeFailedKeySizeLessThanMinimum
 	}
 	e.block, err = aes.NewCipher(key)
@@ -71,5 +70,26 @@ func (e *Encryptor[T]) Encrypt(data T) (string, error) {
 		return "", errors.ErrEncryptorFailedToInitializeNonce
 	}
 	ciphertext := e.gcm.Seal(nonce, nonce, serialized, nil)
+
+	// Handle base64
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
+
+	//// Encode ascii85
+	//var buf bytes.Buffer
+	//encoder := ascii85.NewEncoder(&buf)
+	//_, err = encoder.Write(ciphertext)
+	//if err != nil {
+	//	log.Errorf("[Encrypt]: Ascii85 encoding failed: %v", err)
+	//	return "", errors.ErrEncryptorAscii85EncodingFailed
+	//}
+	//err = encoder.Close()
+	//if err != nil {
+	//	log.Errorf("[Encrypt]: Ascii85 encoder close failed: %v", err)
+	//	return "", errors.ErrEncryptorAscii85EncoderCloseFailed
+	//}
+	//return buf.String(), nil
+
+	//// Handle Base62
+	//return base62.EncodeToString(ciphertext), nil
+
 }

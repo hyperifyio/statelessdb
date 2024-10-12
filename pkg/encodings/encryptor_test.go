@@ -4,23 +4,25 @@
 package encodings_test
 
 import (
+	"testing"
+
 	"github.com/google/uuid"
-	encodings2 "statelessdb/pkg/encodings"
+
+	"statelessdb/pkg/encodings"
 	"statelessdb/pkg/errors"
 	"statelessdb/pkg/states"
-	"testing"
 )
 
 func TestNewEncryptor(t *testing.T) {
-	validKey, err := encodings2.GenerateKey(32)
+	validKey, err := encodings.GenerateKey(32)
 	if err != nil {
 		t.Fatalf("Failed to generate key: %v", err)
 	}
 
-	serializer := encodings2.NewGobSerializer[*states.ComputeState]("ComputeState")
+	serializer := encodings.NewGobSerializer[*states.ComputeState]("ComputeState")
 
 	// Test successful initialization
-	encryptor := encodings2.NewEncryptor[*states.ComputeState](serializer)
+	encryptor := encodings.NewEncryptor[*states.ComputeState](serializer)
 	err = encryptor.Initialize(validKey)
 	if err != nil {
 		t.Fatalf("NewEncryptor failed with valid key: %v", err)
@@ -28,7 +30,7 @@ func TestNewEncryptor(t *testing.T) {
 
 	// Test initialization with invalid key size
 	invalidKey := []byte("shortkey")
-	encryptor = encodings2.NewEncryptor[*states.ComputeState](serializer)
+	encryptor = encodings.NewEncryptor[*states.ComputeState](serializer)
 	err = encryptor.Initialize(invalidKey)
 	if err == nil {
 		t.Errorf("NewEncryptor should fail with invalid key size")
@@ -40,14 +42,14 @@ func TestNewEncryptor(t *testing.T) {
 }
 
 func TestEncrypt(t *testing.T) {
-	key, err := encodings2.GenerateKey(32)
+	key, err := encodings.GenerateKey(32)
 	if err != nil {
 		t.Fatalf("Failed to generate key: %v", err)
 	}
 
-	serializer := encodings2.NewGobSerializer[*states.ComputeState]("ComputeState")
+	serializer := encodings.NewGobSerializer[*states.ComputeState]("ComputeState")
 
-	encryptor := encodings2.NewEncryptor[*states.ComputeState](serializer)
+	encryptor := encodings.NewEncryptor[*states.ComputeState](serializer)
 	err = encryptor.Initialize(key)
 	if err != nil {
 		t.Fatalf("Failed to initialize Encryptor: %v", err)
@@ -78,14 +80,14 @@ func TestEncrypt(t *testing.T) {
 }
 
 func TestEncryptorEncryptNonceUniqueness(t *testing.T) {
-	key, err := encodings2.GenerateKey(32)
+	key, err := encodings.GenerateKey(32)
 	if err != nil {
 		t.Fatalf("Failed to generate key: %v", err)
 	}
 
-	serializer := encodings2.NewGobSerializer[*states.ComputeState]("ComputeState")
+	serializer := encodings.NewGobSerializer[*states.ComputeState]("ComputeState")
 
-	encryptor := encodings2.NewEncryptor[*states.ComputeState](serializer)
+	encryptor := encodings.NewEncryptor[*states.ComputeState](serializer)
 	err = encryptor.Initialize(key)
 	if err != nil {
 		t.Fatalf("Failed to initialize Encryptor: %v", err)

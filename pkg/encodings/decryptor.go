@@ -7,7 +7,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
-
 	"statelessdb/pkg/errors"
 )
 
@@ -49,12 +48,23 @@ func (e *Decryptor[T]) Initialize(key []byte) error {
 func (e *Decryptor[T]) Decrypt(encryptedData string, out T) error {
 	var err error
 
+	//// Decode base62 (good but REALLY slow!)
+	//data, err := base62.DecodeString(encryptedData)
+
+	// Decode base64 (FAST!)
 	data, err := base64.StdEncoding.DecodeString(encryptedData)
 
-	if err != nil {
-		log.Errorf("[Decryptor.Decrypt]: base64: DecodeString: %v", err)
-		return errors.ErrDecryptBase64StringFailed
-	}
+	//// Decode ascii85 (not nice with JSON!)
+	//maxDecodedLen := len(encryptedData) * 4 / 5
+	//decoded := make([]byte, maxDecodedLen)
+	//n, _, err := ascii85.Decode(decoded, []byte(encryptedData), true)
+	//if err != nil {
+	//	log.Errorf("[Decryptor.Decrypt]: base64: DecodeString: %v", err)
+	//	return errors.ErrDecryptBase64StringFailed
+	//}
+	//data := decoded[:n]
+
+	// Decrypt
 	nonceSize := e.gcm.NonceSize()
 	if len(data) < nonceSize {
 		log.Errorf("[Decryptor.Decrypt]: data length %d is less than nonce size %d", len(data), nonceSize)

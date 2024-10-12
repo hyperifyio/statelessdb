@@ -7,10 +7,8 @@ import (
 	"bytes"
 	"sync"
 
-	jsoniter "github.com/json-iterator/go"
+	"statelessdb/pkg/encodings/json"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 var jsonReaderPoolState = sync.Pool{
 	New: func() interface{} {
@@ -28,7 +26,7 @@ func GetJsonReaderState() *JsonReaderState {
 
 type JsonReaderState struct {
 	Buffer  *bytes.Reader
-	Decoder *jsoniter.Decoder
+	Decoder json.Decoder
 }
 
 func (e *JsonReaderState) Release() {

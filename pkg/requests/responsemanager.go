@@ -22,6 +22,7 @@ var _ ResponseManager = &RequestResponseManager[any, Request, any]{}
 // ProcessBytes decodes, decrypts, processes, and encrypts results for a request
 func (r *RequestResponseManager[T, R, D]) ProcessBytes(body []byte) (interface{}, error) {
 
+	//log.Debugf("ProcessBytes: Decoding %v", body)
 	req, err := r.parent.DecodeRequest(body)
 	if err != nil {
 		var dto interface{}
@@ -31,6 +32,7 @@ func (r *RequestResponseManager[T, R, D]) ProcessBytes(body []byte) (interface{}
 	var state T
 	privateString := req.Private()
 	if privateString != "" {
+		//log.Debugf("ProcessBytes: Decrypting private string = %s", privateString)
 		state, err = r.parent.DecryptState(privateString)
 		if err != nil {
 			var dto interface{}
@@ -38,12 +40,14 @@ func (r *RequestResponseManager[T, R, D]) ProcessBytes(body []byte) (interface{}
 		}
 	}
 
+	//log.Debugf("ProcessBytes: Processing request: %v", state)
 	state, err = r.handleRequest(req, state)
 	if err != nil {
 		var dto interface{}
 		return dto, err
 	}
 
+	//log.Debugf("ProcessBytes: Encrypting state: %v", state)
 	private, err := r.parent.EncryptState(state)
 	if err != nil {
 		var dto interface{}
@@ -51,6 +55,7 @@ func (r *RequestResponseManager[T, R, D]) ProcessBytes(body []byte) (interface{}
 	}
 
 	if r.handleResponse != nil {
+		//log.Debugf("ProcessBytes: Handling response: %v with %s", state, private)
 		return r.handleResponse(state, private), nil
 	}
 

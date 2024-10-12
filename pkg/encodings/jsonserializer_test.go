@@ -10,12 +10,9 @@ import (
 	"sync"
 	"testing"
 
-	jsoniter "github.com/json-iterator/go"
-
 	"statelessdb/internal/helpers"
+	"statelessdb/pkg/encodings/json"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // TestJsonSerializer_SerializeBasicTypes tests serialization of basic types.
 func TestJsonSerializer_SerializeBasicTypes_String(t *testing.T) {

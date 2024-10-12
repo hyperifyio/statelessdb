@@ -4,20 +4,23 @@
 package requests
 
 import (
-	encodings2 "statelessdb/pkg/encodings"
+	"bytes"
+
+	"statelessdb/pkg/encodings"
+	"statelessdb/pkg/encodings/json"
 	"statelessdb/pkg/errors"
 )
 
 type EncryptedRequestManager[T interface{}, R Request, D interface{}] struct {
-	Encryptor  *encodings2.Encryptor[T]
-	Decryptor  *encodings2.Decryptor[T]
+	Encryptor  *encodings.Encryptor[T]
+	Decryptor  *encodings.Decryptor[T]
 	NewState   func() T
 	NewRequest func() R
 }
 
 func NewEncryptedRequestManager[T interface{}, R Request, D interface{}](
-	encryptor *encodings2.Encryptor[T],
-	decryptor *encodings2.Decryptor[T],
+	encryptor *encodings.Encryptor[T],
+	decryptor *encodings.Decryptor[T],
 	newState func() T,
 	newRequest func() R,
 ) *EncryptedRequestManager[T, R, D] {
@@ -35,11 +38,17 @@ var _ RequestManager[any, Request, any] = &EncryptedRequestManager[any, Request,
 func (h *EncryptedRequestManager[T, R, D]) DecodeRequest(body []byte) (R, error) {
 	var err error
 	req := h.NewRequest()
-	reader := GetJsonReaderState()
-	defer reader.Release()
-	reader.Buffer.Reset(body)
-	if err = reader.Decoder.Decode(&req); err != nil {
+
+	// TODO: Use of this pool resulted in random fails. Fallback to new decoder each time.
+	//reader := GetJsonReaderState()
+	//defer reader.Release()
+	//log.Debugf("[EncryptedRequestManager.DecodeRequest]: Resetting as: %v", body)
+	//reader.Buffer.Reset(body)
+
+	decoder := json.NewDecoder(bytes.NewReader(body))
+	if err = decoder.Decode(&req); err != nil {
 		log.Errorf("[EncryptedRequestManager.DecodeRequest]: Bad body error: %v", err)
+		log.Debugf("[EncryptedRequestManager.DecodeRequest]: Bad body is: %v", body)
 		return req, errors.ErrBadRequestBodyError
 	}
 	return req, nil

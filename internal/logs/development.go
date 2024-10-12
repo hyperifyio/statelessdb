@@ -5,22 +5,34 @@
 
 package logs
 
+import (
+	"log"
+)
+
 //go:format Debugf 1 2
 func (l *Logger) Debugf(msg string, args ...interface{}) {
-	l.queue <- LogMessage{DebugLogLevel, msg, args}
+	m := LogMessage{DebugLogLevel, msg, args}
+	//l.queue <- m
+	log.Println("[" + l.Context + "] " + m.String())
 }
 
 //go:format Infof 1 2
 func (l *Logger) Infof(msg string, args ...interface{}) {
-	l.queue <- LogMessage{InfoLogLevel, msg, args}
+	m := LogMessage{InfoLogLevel, msg, args}
+	//l.queue <- m
+	log.Println("[" + l.Context + "] " + m.String())
 }
 
 //go:format Warnf 1 2
 func (l *Logger) Warnf(msg string, args ...interface{}) {
-	l.queue <- LogMessage{WarnLogLevel, msg, args}
+	m := LogMessage{WarnLogLevel, msg, args}
+	//l.queue <- m
+	log.Println("[" + l.Context + "] " + m.String())
 }
 
 //go:format Errorf 1 2
 func (l *Logger) Errorf(msg string, args ...interface{}) {
-	l.queue <- LogMessage{ErrorLogLevel, msg, args}
+	m := LogMessage{ErrorLogLevel, msg, args}
+	//l.queue <- m
+	log.Println("[" + l.Context + "] " + m.String())
 }

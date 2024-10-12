@@ -14,13 +14,23 @@ import (
 // the Private field of dtos.ComputeResponseDTO. This is the state used by
 // StatelessDB by default, but users may implement their own states.
 type ComputeState struct {
-	Id      uuid.UUID                               `json:"id"`      // ID identifies the object
-	Owner   uuid.UUID                               `json:"owner"`   // Owner identifies the owner of the object
-	Created int64                                   `json:"created"` // Created is the time when the object was created
-	Updated int64                                   `json:"updated"` // Updated is the time when the object was updated
-	Public  map[string]interface{}                  `json:"data"`    // Public contains public properties of the object
-	Private map[string]interface{}                  `json:"private"` // Private contains unencrypted private properties of the object
-	Events  []*events.Event[uuid.UUID, interface{}] // Events are special internal property for event handler
+	Id      uuid.UUID              `json:"id"`      // ID identifies the object
+	Owner   uuid.UUID              `json:"owner"`   // Owner identifies the owner of the object
+	Created int64                  `json:"created"` // Created is the time when the object was created
+	Updated int64                  `json:"updated"` // Updated is the time when the object was updated
+	Public  map[string]interface{} `json:"data"`    // Public contains public properties of the object
+	Private map[string]interface{} `json:"private"` // Private contains unencrypted private properties of the object
+
+	events []*events.Event[uuid.UUID, interface{}] // events are intended for event implementation and are not supposed to be exposed to state
+
+}
+
+func (s *ComputeState) Events() []*events.Event[uuid.UUID, interface{}] {
+	return s.events
+}
+
+func (s *ComputeState) AddEvent(ev ...*events.Event[uuid.UUID, interface{}]) {
+	s.events = append(s.events, ev...)
 }
 
 func NewComputeState(
@@ -36,7 +46,7 @@ func NewComputeState(
 		Updated: updated,
 		Public:  public,
 		Private: private,
-		Events:  evList,
+		events:  evList,
 	}
 }
 

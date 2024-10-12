@@ -5,15 +5,15 @@ package encodings
 
 import (
 	"bytes"
-	"statelessdb/pkg/errors"
 	"sync"
 
-	jsoniter "github.com/json-iterator/go"
+	json "statelessdb/pkg/encodings/json"
+	"statelessdb/pkg/errors"
 )
 
 var jsonDecoderPoolState = sync.Pool{
 	New: func() interface{} {
-		buf := getBytesBuffer()
+		buf := new(bytes.Buffer)
 		return &JsonDecoderState{
 			buf,
 			json.NewDecoder(buf),
@@ -27,7 +27,7 @@ func GetJsonDecoderState() *JsonDecoderState {
 
 type JsonDecoderState struct {
 	buffer  *bytes.Buffer
-	Decoder *jsoniter.Decoder
+	Decoder json.Decoder
 }
 
 func (e *JsonDecoderState) Release() {

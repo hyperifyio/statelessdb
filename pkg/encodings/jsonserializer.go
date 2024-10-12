@@ -7,14 +7,12 @@ import (
 	"bytes"
 	"sync"
 
-	jsoniter "github.com/json-iterator/go"
+	"statelessdb/pkg/encodings/json"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 var jsonEncoderPoolState = sync.Pool{
 	New: func() interface{} {
-		buf := getBytesBuffer()
+		buf := new(bytes.Buffer)
 		return &JsonEncoderState{
 			buf,
 			json.NewEncoder(buf),
@@ -28,7 +26,7 @@ func GetJsonEncoderState() *JsonEncoderState {
 
 type JsonEncoderState struct {
 	buffer  *bytes.Buffer
-	Encoder *jsoniter.Encoder
+	Encoder json.Encoder
 }
 
 var _ SerializerState = &JsonEncoderState{}

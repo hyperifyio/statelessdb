@@ -17,6 +17,8 @@ var (
 	ErrEncryptorInitializeFailedNewCipher              = errors.New("initializing encryptor: failed to create cipher")
 	ErrEncryptorInitializeFailedNewGCM                 = errors.New("initializing encryptor: failed to create GCM")
 	ErrEncryptorFailedToInitializeNonce                = errors.New("encryptor: failed to initialize nonce")
+	ErrEncryptorAscii85EncodingFailed                  = errors.New("encryptor: failed to encode ascii85")
+	ErrEncryptorAscii85EncoderCloseFailed              = errors.New("encryptor: Ascii85 encoder close failed")
 	ErrEncryptorFailedToSerializeData                  = errors.New("encryptor: failed to serialize data")
 	ErrDecryptBase64StringFailed                       = errors.New("decrypting: Base64 decoding failed")
 	ErrDecryptDataLengthLessThanNonceSize              = errors.New("decrypting: Data length less than nonce size")

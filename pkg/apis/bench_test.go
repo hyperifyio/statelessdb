@@ -4,19 +4,21 @@
 package apis_test
 
 import (
+	"testing"
+
 	"bytes"
-	"github.com/google/uuid"
-	jsoniter "github.com/json-iterator/go"
 	"net/http"
 	"net/http/httptest"
-	"statelessdb/pkg/apis"
-	"statelessdb/pkg/dtos"
-	encodings2 "statelessdb/pkg/encodings"
-	"statelessdb/pkg/requests"
-	"statelessdb/pkg/states"
 	"time"
 
-	"testing"
+	"github.com/google/uuid"
+
+	"statelessdb/pkg/apis"
+	"statelessdb/pkg/dtos"
+	"statelessdb/pkg/encodings"
+	"statelessdb/pkg/encodings/json"
+	"statelessdb/pkg/requests"
+	"statelessdb/pkg/states"
 )
 
 func BenchmarkHandleComputeStateRequest(b *testing.B) {
@@ -24,20 +26,20 @@ func BenchmarkHandleComputeStateRequest(b *testing.B) {
 
 	now := time.Now().UnixMilli()
 
-	serverKey, err := encodings2.GenerateKey(32)
+	serverKey, err := encodings.GenerateKey(32)
 	if err != nil {
 		b.Fatalf("Could not create server key: %v", err)
 	}
 
-	serializer := encodings2.NewJsonSerializer[*states.ComputeState]("ComputeState")
-	unserializer := encodings2.NewJsonUnserializer[*states.ComputeState]("ComputeState")
+	serializer := encodings.NewJsonSerializer[*states.ComputeState]("ComputeState")
+	unserializer := encodings.NewJsonUnserializer[*states.ComputeState]("ComputeState")
 
-	encryptor := encodings2.NewEncryptor[*states.ComputeState](serializer)
+	encryptor := encodings.NewEncryptor[*states.ComputeState](serializer)
 	if err = encryptor.Initialize(serverKey); err != nil {
 		b.Fatalf("Could not create encryptor: %v", err)
 	}
 
-	decryptor := encodings2.NewDecryptor[*states.ComputeState](unserializer)
+	decryptor := encodings.NewDecryptor[*states.ComputeState](unserializer)
 	if err = decryptor.Initialize(serverKey); err != nil {
 		b.Fatalf("Could not create decryptor: %v", err)
 	}
@@ -93,7 +95,7 @@ func BenchmarkHandleComputeStateRequest(b *testing.B) {
 			}
 
 			// Marshal the struct into JSON
-			requestBodyBytes, err := jsoniter.Marshal(request)
+			requestBodyBytes, err := json.Marshal(request)
 			if err != nil {
 				b.Fatalf("Could not marshal privateString: %v", err)
 				return
@@ -143,7 +145,7 @@ func BenchmarkHandleComputeStateRequest(b *testing.B) {
 			request := requests.ComputeRequest{}
 
 			// Marshal the struct into JSON
-			requestBodyBytes, err := jsoniter.Marshal(request)
+			requestBodyBytes, err := json.Marshal(request)
 			if err != nil {
 				b.Fatalf("Could not marshal privateString: %v", err)
 				return
