@@ -2,7 +2,7 @@
 
 **Author:** Jaakko Heusala  
 **Date:** October 12, 2024  
-**Version:** 1.0
+**Version:** 0.1
 
 ---
 

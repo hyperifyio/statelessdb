@@ -28,7 +28,8 @@ func TestEncodeDecode(t *testing.T) {
 			}
 			return data
 		}()},
-		{"RandomData", []byte{0x01, 0x02, 0x3C, 0x3D, 0x7E, 0x20, 0xFF}},
+		{"StaticRandomData", []byte{0x01, 0x02, 0x3C, 0x3D, 0x7E, 0x20, 0xFF}},
+		{"RandomData", generateRandomBytes(256)},
 		{"EdgeValues", []byte{0x00, 0x7F, 0x80, 0xFF}},
 	}
 	for _, tc := range testCases {
