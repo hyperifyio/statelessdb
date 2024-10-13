@@ -63,6 +63,7 @@ func TestInvalidDecoding(t *testing.T) {
 		name    string
 		encoded []byte
 	}{
+		{"Single byte", []byte("A")},
 		{"InvalidCharacter", []byte("ABC\"")},
 		//{"InvalidToggle", "A   B"},
 		//{"EndsWithSeparator", "ABC "},

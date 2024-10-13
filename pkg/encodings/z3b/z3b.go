@@ -25,24 +25,28 @@ const (
 	printableSet2 = "-_$`! "                                                                                 // These can be used for control
 	printableSet3 = "'\"\\"                                                                                  // We don't use these because JSON escaping
 
-	numSets    = 7   // Number of binary sets
-	setSize    = 86  // Number of characters in printableSet
-	totalBytes = 256 // Total number of byte values (0-255)
+	groupSet = printableSet + printableSet2 // Data characters
+
+	numGroups  = len(groupSet)     // Number of encoding groups to select the best from (this is the first byte)
+	numSets    = 7                 // Number of binary sets per a encoding group
+	setSize    = len(printableSet) // Number of characters in printableSet
+	totalBytes = 256               // Total number of byte values (0-255)
 )
 
 // Character Sets Arrays
 var (
 	printableBytes = []byte(printableSet) // Convert printableSet to []byte
+	groupBytes     = []byte(groupSet)     // Convert groupSet to []byte
 )
 
 // Mapping Tables
 var (
 	// byteToCharSet maps each set to a byte-to-char mapping array.
-	byteToCharSet [numSets][totalBytes]int
+	byteToCharSet [numGroups][numSets][totalBytes]int
 
 	// charToByteSet maps each set to a char-to-byte mapping array.
 	// Index 0 corresponds to char 0, up to char 128.
-	charToByteSet [numSets][128]byte
+	charToByteSet [numGroups][numSets][128]byte
 )
 
 // Initialize mapping tables
@@ -58,59 +62,22 @@ func initializeMappings() {
 	}
 
 	// Fill byteToCharSet with 0 char if not mapped
-	for set := 0; set < numSets; set++ {
-		for b := 0; b < totalBytes; b++ {
-			byteToCharSet[set][b] = -1
+	for g := 0; g < numGroups; g++ {
+		for set := 0; set < numSets; set++ {
+			for b := 0; b < totalBytes; b++ {
+				byteToCharSet[g][set][b] = -1
+			}
 		}
 	}
 
-	// Populate Set1
-	for i, b := range binarySet1 {
-		r := printableBytes[i]
-		byteToCharSet[0][b] = int(r)
-		charToByteSet[0][r] = b
-	}
-
-	// Populate Set2
-	for i, b := range binarySet2 {
-		r := printableBytes[i]
-		byteToCharSet[1][b] = int(r)
-		charToByteSet[1][r] = b
-	}
-
-	// Populate Set3
-	for i, b := range binarySet3 {
-		r := printableBytes[i]
-		byteToCharSet[2][b] = int(r)
-		charToByteSet[2][r] = b
-	}
-
-	// Populate Set4
-	for i, b := range binarySet4 {
-		r := printableBytes[i]
-		byteToCharSet[3][b] = int(r)
-		charToByteSet[3][r] = b
-	}
-
-	// Populate Set5
-	for i, b := range binarySet5 {
-		r := printableBytes[i]
-		byteToCharSet[4][b] = int(r)
-		charToByteSet[4][r] = b
-	}
-
-	// Populate Set6
-	for i, b := range binarySet6 {
-		r := printableBytes[i]
-		byteToCharSet[5][b] = int(r)
-		charToByteSet[5][r] = b
-	}
-
-	// Populate Set7
-	for i, b := range binarySet7 {
-		r := printableBytes[i]
-		byteToCharSet[6][b] = int(r)
-		charToByteSet[6][r] = b
+	for g := 0; g < numGroups; g++ {
+		for set := 0; set < numSets; set++ {
+			for i, b := range binaryGroups[g][set] {
+				r := printableBytes[i]
+				byteToCharSet[g][set][b] = int(r)
+				charToByteSet[g][set][r] = b
+			}
+		}
 	}
 
 	//// Verify that separator1 is not present in printableBytes
@@ -134,34 +101,113 @@ var decodePool = sync.Pool{
 	},
 }
 
+type groupResult struct {
+	err     error
+	group   int
+	encoded []byte
+}
+
 // Encode encodes the input bytes into a z3b-encoded string.
 func Encode(data []byte) ([]byte, error) {
+
+	//log.Printf("Encode: data = %v", data)
+
+	if len(data) == 0 {
+		return nil, nil
+	}
+
+	ch := make(chan groupResult)
+	for g := 0; g < numGroups; g++ {
+		go findGroup(g, data, ch)
+	}
+
+	bestGroup := -1
+	bestSize := -1
+	var bestEncoding []byte
+
+	for g := 0; g < numGroups; g++ {
+		res := <-ch
+		if res.err != nil {
+			return nil, fmt.Errorf("error in encoding group %d: %w", res.group, res.err)
+		}
+		size := len(res.encoded)
+		if bestSize < 0 || size < bestSize {
+			//if cap(bestEncoding) >= 1 {
+			//	encodePool.Put(bestEncoding[:0])
+			//}
+			bestSize = size
+			bestGroup = res.group
+			bestEncoding = res.encoded
+			//} else {
+			//	if cap(bestEncoding) >= 1 {
+			//		encodePool.Put(bestEncoding[:0])
+			//	}
+
+			if bestSize <= 2 {
+				break
+			}
+
+		}
+	}
+
+	if bestGroup < 0 {
+		return nil, fmt.Errorf("failed to find best encoding group")
+	}
+
+	//log.Printf("Encode: Best group %d '%c' (%d bytes): \"%s\"",
+	//	bestGroup, groupBytes[bestGroup], bestSize, string(bestEncoding))
+
+	return bestEncoding, nil
+}
+
+func findGroup(group int, data []byte, ch chan groupResult) {
+	encoded, err := encodeGroup(group, data)
+	if err != nil {
+		ch <- groupResult{
+			group: group,
+			err:   err,
+		}
+	} else {
+		ch <- groupResult{
+			group:   group,
+			encoded: encoded,
+		}
+	}
+}
+
+// encodeGroup encodes the input bytes into a z3b-encoded string.
+func encodeGroup(currentGroup int, data []byte) ([]byte, error) {
+
 	l := len(data)
 	estimatedSize := l * 4
 
-	result := encodePool.Get().([]byte)
-	defer encodePool.Put(result[:0])
-	if cap(result) < estimatedSize {
-		encodePool.Put(result[:0])
-		result = make([]byte, 0, estimatedSize)
-		//result = slices.Grow(result, estimatedSize)
-	}
-	result = result[:estimatedSize]
+	//result := encodePool.Get().([]byte)
+	//if cap(result) < estimatedSize {
+	//	encodePool.Put(result[:0])
+	//	result = make([]byte, 0, estimatedSize)
+	//	//result = slices.Grow(result, estimatedSize)
+	//}
+	//result = result[:estimatedSize]
+
+	result := make([]byte, estimatedSize)
+	//log.Printf("encodeGroup: start: group %d '%c'", currentGroup, groupBytes[currentGroup])
+	idx := 0
+	result[idx] = groupBytes[currentGroup]
+	idx++
 
 	currentSet := 0
-	idx := 0
 	for i, b := range data {
 
-		r := byteToCharSet[currentSet][b]
-		if r >= 0 && r <= totalBytes {
+		r := byteToCharSet[currentGroup][currentSet][b]
+		if r >= 0 && r < totalBytes {
 			result[idx] = byte(r)
 			idx++
 			continue
 		}
 
 		ch := make(chan [2]int)
-		for j := 1; j < 7; j++ {
-			go findChunk(currentSet, j, data[i:], ch)
+		for j := 1; j < numSets; j++ {
+			go findChunk(currentGroup, currentSet, j, data[i:], ch)
 		}
 
 		bestSet := -1 // The current best set
@@ -207,24 +253,29 @@ func Encode(data []byte) ([]byte, error) {
 			result[idx] = separator6
 			idx++
 		default:
+			//encodePool.Put(result[:0])
 			return nil, fmt.Errorf("failed to find encoding set for: '%c'", b)
 		}
 
 		currentSet = (currentSet + bestSet) % numSets
-		r = byteToCharSet[currentSet][b]
+		r = byteToCharSet[currentGroup][currentSet][b]
 
 		result[idx] = byte(r)
 		idx++
 	}
 
-	return result[:idx], nil
+	result = result[:idx]
+
+	//log.Printf("encodeGroup: Group %d '%c': \"%s\"\n", currentGroup, groupBytes[currentGroup], result)
+
+	return result, nil
 }
 
-func findChunk(currentSet, j int, next []byte, ch chan [2]int) {
+func findChunk(currentGroup, currentSet, j int, next []byte, ch chan [2]int) {
 	set := (currentSet + j) % numSets
 	idx := 0
 	for _, b := range next {
-		r := byteToCharSet[set][b]
+		r := byteToCharSet[currentGroup][set][b]
 		if r < 0 || r >= totalBytes {
 			break
 		}
@@ -239,7 +290,29 @@ func ReleaseDecodedBytes(decoded []byte) {
 
 // Decode decodes a z3b-encoded string back into bytes.
 func Decode(encoded []byte) ([]byte, error) {
+
+	//log.Printf("Decode: encoded = \"%s\"", string(encoded))
+
 	l := len(encoded)
+	if l <= 0 {
+		return nil, nil
+	}
+	if l == 1 {
+		return nil, fmt.Errorf("invalid single character string to decode")
+	}
+
+	gb := encoded[0]
+	currentGroup := -1
+	for i, b := range groupBytes {
+		if gb == b {
+			currentGroup = i
+			break
+		}
+	}
+	if currentGroup < 0 {
+		return nil, fmt.Errorf("invalid character in encoded string: '%c'", gb)
+	}
+	//log.Printf("Decode: currentGroup = %d", currentGroup)
 
 	decoded := decodePool.Get().([]byte)
 	if cap(decoded) < l {
@@ -251,7 +324,7 @@ func Decode(encoded []byte) ([]byte, error) {
 
 	currentSet := 0
 	idx := 0
-	for i := 0; i < l; i++ {
+	for i := 1; i < l; i++ {
 		c := encoded[i]
 
 		switch c {
@@ -279,12 +352,15 @@ func Decode(encoded []byte) ([]byte, error) {
 			return nil, fmt.Errorf("invalid character in encoded string: '%c'", c)
 		}
 
-		b := charToByteSet[currentSet][c]
+		b := charToByteSet[currentGroup][currentSet][c]
 		//if b == 0 && binarySet1[0] != 0 { // Assuming 0 is a valid byte, check if mapped
 		//	return nil, fmt.Errorf("invalid character '%c' for set %d", c, currentSet+1)
 		//}
 		decoded[idx] = b
 		idx++
 	}
+
+	//log.Printf("Decode: decoded = %v", decoded[:idx])
+
 	return decoded[:idx], nil
 }
