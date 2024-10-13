@@ -42,7 +42,7 @@ func TestEncodeDecode(t *testing.T) {
 
 			b64 := base64.StdEncoding.EncodeToString(tc.data)
 
-			fmt.Printf("%d bytes encoded as: \"%s\" (%d), base64 size: %d", len(tc.data), string(encoded), len(encoded), len(b64))
+			fmt.Printf("%s: %d bytes encoded as: \"%s\" (%d), base64 %s (%d bytes)", tc.name, len(tc.data), string(encoded), len(encoded), b64, len(b64))
 
 			decoded, err := z3b.Decode(encoded)
 			if err != nil {
