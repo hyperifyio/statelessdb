@@ -1,7 +1,5 @@
 // Copyright (c) 2024. Jaakko Heusala <jheusala@iki.fi>. All rights reserved.
 // Licensed under the FSL-1.1-MIT, see LICENSE.md in the project root for details.
-//go:build disabled
-// +build disabled
 
 package z3b_test
 
@@ -30,6 +28,7 @@ func RandomShuffle[T any](list []T) {
 }
 
 const (
+	numGroups  = 92
 	numSets    = 7
 	setSize    = 86
 	totalBytes = 256
@@ -150,8 +149,8 @@ func compareSets(a, b [numSets][setSize]byte) bool {
 			compareBytes(a[6], b[6]))
 }
 
-// Initialize mapping tables
-func init() {
+// Initialize mapping tables by random
+func createRandomMaps() {
 
 	str := "var (\n    binaryGroups = [numGroups][numSets][setSize]byte{\n"
 
@@ -242,4 +241,210 @@ func printSet(data [86]byte) string {
 		}
 	}
 	return str
+}
+
+// GetBinaryGroups generates statistically and logically optimized mappings
+// for encoding random data. It returns a three-dimensional byte array
+// representing groups, sets, and their content.
+func GetBinaryGroups() [][numSets][setSize]byte {
+	totalPositions := numSets * setSize
+	if totalPositions < 256 {
+		panic("Total positions per group must be at least 256 to cover all byte values.")
+	}
+
+	// Initialize the groups slice
+	groups := make([][numSets][setSize]byte, numGroups)
+
+	for g := 0; g < numGroups; g++ {
+
+		// Initialize the sets slice for this group
+		sets := [numSets][setSize]byte{
+			{
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0,
+			},
+			{
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0,
+			},
+			{
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0,
+			},
+			{
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0,
+			},
+			{
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0,
+			},
+			{
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0,
+			},
+			{
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0,
+			},
+		}
+
+		// Generate a permutation of byte values for this group
+		byteValues := make([]byte, 256)
+		for i := 0; i < 256; i++ {
+			j := i + g
+			if j >= 256 {
+				j -= 256
+			}
+			byteValues[i] = byte(j)
+		}
+		// Shuffle the byte values to create a unique permutation per group
+		RandomShuffle(byteValues)
+
+		// Calculate how many times each byte value should repeat
+		timesPerByte := totalPositions / 256
+		remaining := totalPositions % 256
+
+		// Build a slice containing all byte values repeated accordingly
+		bytesPerGroup := make([]byte, 0, totalPositions)
+		for i := 0; i < timesPerByte; i++ {
+			bytesPerGroup = append(bytesPerGroup, byteValues...)
+		}
+		bytesPerGroup = append(bytesPerGroup, byteValues[:remaining]...)
+
+		// Shuffle the bytesPerGroup to distribute duplicates
+		RandomShuffle(bytesPerGroup)
+
+		// Distribute bytesPerGroup into sets
+		pos := 0
+		for s := 0; s < numSets; s++ {
+			from := bytesPerGroup[pos : pos+setSize]
+			for i := 0; i < setSize; i++ {
+				sets[s][i] = from[i]
+			}
+			pos += setSize
+		}
+
+		//fmt.Printf("sets[0] = %v\n", sets[0])
+
+		// Assign the sets to the group
+		groups[g] = sets
+	}
+
+	return groups
+}
+
+// Initialize mapping tables by using GetBinaryGroups()
+func createMaps() {
+
+	allSets := GetBinaryGroups()
+
+	str := "var (\n    binaryGroups = [numGroups][numSets][setSize]byte{\n"
+	for i, g := range allSets {
+		str += fmt.Sprintf(`
+        // Group %d
+        {
+            {
+              %s
+            },
+            {
+              %s
+            },
+            {
+              %s
+            },
+            {
+              %s
+            },
+            {
+              %s
+            },
+            {
+              %s
+            },
+            {
+              %s
+            },
+        },
+`,
+			i,
+			printSet(g[0]),
+			printSet(g[1]),
+			printSet(g[2]),
+			printSet(g[3]),
+			printSet(g[4]),
+			printSet(g[5]),
+			printSet(g[6]),
+		)
+	}
+	str += "    }\n)\n"
+	fmt.Println(str)
+
+}
+
+func init() {
+	createMaps()
 }
