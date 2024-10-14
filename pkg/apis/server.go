@@ -10,6 +10,7 @@ import (
 	"github.com/hyperifyio/statelessdb/pkg/requests"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/http/pprof"
 )
@@ -17,12 +18,14 @@ import (
 type Server struct {
 	enablePprof bool
 	routes      map[string]requests.ResponseManager
+	fs          fs.FS
 }
 
 func NewServer() *Server {
 	return &Server{
 		false,
 		make(map[string]requests.ResponseManager),
+		nil,
 	}
 }
 
@@ -32,6 +35,10 @@ func (s *Server) Handle(path string, r requests.ResponseManager) {
 
 func (s *Server) EnablePprof() {
 	s.enablePprof = true
+}
+
+func (s *Server) EnableFrontend(f fs.FS) {
+	s.fs = f
 }
 
 func (s *Server) BuildHandler(handler requests.ResponseManager) func(w http.ResponseWriter, r *http.Request) {
@@ -83,12 +90,15 @@ func (s *Server) StartLocalServer(listen string) {
 
 	r := mux.NewRouter()
 
-	//// Wrap the file server handler to track requests using Prometheus
-	//fileServerHandler := http.FileServer(http.FS(frontends.BuildFS))
-	//wrappedFileServerHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	//	metrics.HttpRequestsTotal.WithLabelValues(r.URL.Path).Inc()
-	//	fileServerHandler.ServeHTTP(w, r)
-	//})
+	// Wrap the file server handler to track requests using Prometheus
+	var wrappedFileServerHandler http.HandlerFunc
+	if s.fs != nil {
+		fileServerHandler := http.FileServer(http.FS(s.fs))
+		wrappedFileServerHandler = func(w http.ResponseWriter, r *http.Request) {
+			metrics.RecordHttpRequestMetric(r.URL.Path)
+			fileServerHandler.ServeHTTP(w, r)
+		}
+	}
 
 	// Register pprof routes with mux
 	if s.enablePprof {
@@ -112,7 +122,9 @@ func (s *Server) StartLocalServer(listen string) {
 		}
 	}
 
-	//r.PathPrefix("/").Handle(http.StripPrefix("/", wrappedFileServerHandler))
+	if s.fs != nil && wrappedFileServerHandler != nil {
+		r.PathPrefix("/").Handler(http.StripPrefix("/", wrappedFileServerHandler))
+	}
 
 	err := http.ListenAndServe(listen, r)
 	if err != nil {
