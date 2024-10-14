@@ -21,6 +21,7 @@ func ApiRequestHandler(bus events.EventBus[uuid.UUID, interface{}]) requests.Api
 		if state == nil {
 			var private map[string]interface{}
 			//private = make(map[string]interface{})
+			RecordResourceCreatedMetric()
 			state = states.NewComputeState(uuid.New(), uuid.New(), now, now, r.Public, private, nil)
 		}
 

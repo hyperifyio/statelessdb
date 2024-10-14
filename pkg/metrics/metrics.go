@@ -7,7 +7,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// Declare a global counter
+// Declare global metrics
 var (
 	HttpRequestsTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -15,22 +15,6 @@ var (
 			Help: "Count of all HTTP requests",
 		},
 		[]string{"path"}, // Labels
-	)
-
-	ResourceCreatedTotal = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "compute_started_total",
-			Help: "Count of created resources",
-		},
-		[]string{}, // Labels
-	)
-
-	ComputeDuration = prometheus.NewHistogram(
-		prometheus.HistogramOpts{
-			Name:    "compute_duration_milliseconds",
-			Help:    "Duration in milliseconds that resources were computed",
-			Buckets: prometheus.LinearBuckets(0, 1000, 300),
-		},
 	)
 
 	FailedOperationsCounter = prometheus.NewCounterVec(
@@ -48,17 +32,26 @@ var (
 	})
 )
 
-func init() {
-	prometheus.MustRegister(
+var (
+	ourCollectors = []prometheus.Collector{
 		HttpRequestsTotal,
 		FailedOperationsCounter,
-		ResourceCreatedTotal,
-		ComputeDuration,
 		FailedAttemptsHistogram,
-	)
+	}
+)
+
+func MustRegister(cs ...prometheus.Collector) {
+	our := make([]prometheus.Collector, 0, len(ourCollectors)+len(cs))
+	our = append(our, ourCollectors...)
+	our = append(our, cs...)
+	prometheus.MustRegister(our...)
 }
 
 func RecordFailedOperationMetric(operationName string) {
 	// Increment the counter for the specific operation that failed
 	FailedOperationsCounter.WithLabelValues(operationName).Inc()
+}
+
+func RecordHttpRequestMetric(path string) {
+	HttpRequestsTotal.WithLabelValues(path).Inc()
 }

@@ -36,7 +36,7 @@ func (s *Server) EnablePprof() {
 
 func (s *Server) BuildHandler(handler requests.ResponseManager) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		metrics.HttpRequestsTotal.WithLabelValues(r.URL.Path).Inc()
+		metrics.RecordHttpRequestMetric(r.URL.Path)
 
 		// Read the request body
 		requestBody, err := io.ReadAll(r.Body)
