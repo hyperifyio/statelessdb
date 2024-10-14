@@ -3,6 +3,8 @@
 
 package states
 
-import "github.com/hyperifyio/statelessdb/internal/logs"
+import (
+	"github.com/hyperifyio/statelessdb/pkg/logs"
+)
 
 var log = logs.NewLogger("states")

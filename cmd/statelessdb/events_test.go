@@ -5,14 +5,13 @@ package main_test
 
 import (
 	"errors"
+	"github.com/hyperifyio/statelessdb/pkg/helpers"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/hyperifyio/statelessdb/internal/helpers"
 
 	"github.com/hyperifyio/statelessdb/pkg/dtos"
 	"github.com/hyperifyio/statelessdb/pkg/events"

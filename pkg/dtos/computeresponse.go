@@ -5,8 +5,7 @@ package dtos
 
 import (
 	"github.com/google/uuid"
-
-	"github.com/hyperifyio/statelessdb/internal/helpers"
+	"github.com/hyperifyio/statelessdb/pkg/helpers"
 )
 
 // ComputeResponseDTO struct defines the structure of the response DTO
