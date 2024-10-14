@@ -4,7 +4,7 @@
 package encodings_test
 
 import (
-	encodings2 "statelessdb/pkg/encodings"
+	encodings2 "github.com/hyperifyio/statelessdb/pkg/encodings"
 	"sync"
 	"testing"
 )

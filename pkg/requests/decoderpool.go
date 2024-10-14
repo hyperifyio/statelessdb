@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"sync"
 
-	"statelessdb/pkg/encodings/json"
+	"github.com/hyperifyio/statelessdb/pkg/encodings/json"
 )
 
 var jsonReaderPoolState = sync.Pool{

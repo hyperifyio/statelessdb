@@ -11,9 +11,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"statelessdb/pkg/encodings"
-	"statelessdb/pkg/encodings/json"
-	"statelessdb/pkg/states"
+	"github.com/hyperifyio/statelessdb/pkg/encodings"
+	"github.com/hyperifyio/statelessdb/pkg/encodings/json"
+	"github.com/hyperifyio/statelessdb/pkg/states"
 )
 
 func BenchmarkEncryptorDecryptor(b *testing.B) {

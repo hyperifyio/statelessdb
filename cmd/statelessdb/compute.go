@@ -5,10 +5,10 @@ package main
 
 import (
 	"github.com/google/uuid"
-	"statelessdb/pkg/dtos"
-	"statelessdb/pkg/events"
-	"statelessdb/pkg/requests"
-	"statelessdb/pkg/states"
+	"github.com/hyperifyio/statelessdb/pkg/dtos"
+	"github.com/hyperifyio/statelessdb/pkg/events"
+	"github.com/hyperifyio/statelessdb/pkg/requests"
+	"github.com/hyperifyio/statelessdb/pkg/states"
 )
 
 // ApiRequestHandler is called to implement POST /api/v1 which implements compute actions on a state

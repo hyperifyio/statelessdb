@@ -8,9 +8,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"statelessdb/pkg/encodings"
-	"statelessdb/pkg/errors"
-	"statelessdb/pkg/states"
+	"github.com/hyperifyio/statelessdb/pkg/encodings"
+	"github.com/hyperifyio/statelessdb/pkg/errors"
+	"github.com/hyperifyio/statelessdb/pkg/states"
 )
 
 func TestNewEncryptor(t *testing.T) {

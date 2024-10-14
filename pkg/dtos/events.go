@@ -5,7 +5,7 @@ package dtos
 
 import (
 	"github.com/google/uuid"
-	"statelessdb/internal/helpers"
+	"github.com/hyperifyio/statelessdb/internal/helpers"
 )
 
 // EventDTO struct defines DTO for event list

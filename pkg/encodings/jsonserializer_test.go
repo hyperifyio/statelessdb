@@ -6,12 +6,12 @@ package encodings_test
 import (
 	"bytes"
 	"fmt"
-	"statelessdb/pkg/encodings"
+	"github.com/hyperifyio/statelessdb/pkg/encodings"
 	"sync"
 	"testing"
 
-	"statelessdb/internal/helpers"
-	"statelessdb/pkg/encodings/json"
+	"github.com/hyperifyio/statelessdb/internal/helpers"
+	"github.com/hyperifyio/statelessdb/pkg/encodings/json"
 )
 
 // TestJsonSerializer_SerializeBasicTypes tests serialization of basic types.

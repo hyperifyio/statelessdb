@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"testing"
 
-	"statelessdb/pkg/encodings/z3b"
+	"github.com/hyperifyio/statelessdb/pkg/encodings/z3b"
 )
 
 // TestEncodeDecode tests the Encode and Decode functions with various inputs

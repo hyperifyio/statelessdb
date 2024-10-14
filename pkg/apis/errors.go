@@ -4,8 +4,8 @@
 package apis
 
 import (
+	"github.com/hyperifyio/statelessdb/pkg/metrics"
 	"net/http"
-	"statelessdb/pkg/metrics"
 )
 
 // Make sure these are used only once per place, e.g. IDE should report 1 usage

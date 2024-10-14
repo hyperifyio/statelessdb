@@ -6,7 +6,7 @@ package encodings
 import (
 	"bytes"
 
-	"statelessdb/internal/types"
+	"github.com/hyperifyio/statelessdb/internal/types"
 )
 
 var bytesBufferPoolManager *types.MemoryPoolManager[*bytes.Buffer]

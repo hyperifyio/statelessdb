@@ -11,7 +11,7 @@ import (
 	"encoding/base64"
 	"io"
 
-	"statelessdb/pkg/errors"
+	"github.com/hyperifyio/statelessdb/pkg/errors"
 )
 
 // Encryptor helps with providing memory for encryption

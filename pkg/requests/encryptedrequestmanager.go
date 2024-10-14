@@ -6,9 +6,9 @@ package requests
 import (
 	"bytes"
 
-	"statelessdb/pkg/encodings"
-	"statelessdb/pkg/encodings/json"
-	"statelessdb/pkg/errors"
+	"github.com/hyperifyio/statelessdb/pkg/encodings"
+	"github.com/hyperifyio/statelessdb/pkg/encodings/json"
+	"github.com/hyperifyio/statelessdb/pkg/errors"
 )
 
 type EncryptedRequestManager[T interface{}, R Request, D interface{}] struct {

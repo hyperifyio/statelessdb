@@ -1,7 +1,7 @@
 package encodings_test
 
 import (
-	"statelessdb/internal/helpers"
+	"github.com/hyperifyio/statelessdb/internal/helpers"
 )
 
 // SampleStruct is a sample data structure for testing.

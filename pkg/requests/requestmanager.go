@@ -4,7 +4,7 @@
 package requests
 
 import (
-	"statelessdb/pkg/encodings"
+	"github.com/hyperifyio/statelessdb/pkg/encodings"
 )
 
 type ApiRequestHandlerFunc[T interface{}, R Request] func(r R, state T) (T, error)

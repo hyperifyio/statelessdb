@@ -7,7 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"statelessdb/pkg/encodings"
+	"github.com/hyperifyio/statelessdb/pkg/encodings"
 )
 
 // parsePrivateKeyString parses AES-256 key, used in --private-key argument

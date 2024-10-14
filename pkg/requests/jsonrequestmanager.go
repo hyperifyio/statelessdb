@@ -4,8 +4,8 @@
 package requests
 
 import (
-	encodings2 "statelessdb/pkg/encodings"
-	"statelessdb/pkg/errors"
+	encodings2 "github.com/hyperifyio/statelessdb/pkg/encodings"
+	"github.com/hyperifyio/statelessdb/pkg/errors"
 )
 
 func NewJsonRequestManager[T interface{}, R Request, D interface{}](

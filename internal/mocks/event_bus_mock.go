@@ -2,7 +2,7 @@ package mocks
 
 import (
 	"github.com/google/uuid"
-	"statelessdb/pkg/events"
+	"github.com/hyperifyio/statelessdb/pkg/events"
 	"sync"
 )
 

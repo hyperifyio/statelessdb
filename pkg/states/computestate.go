@@ -5,9 +5,9 @@ package states
 
 import (
 	"github.com/google/uuid"
-	"statelessdb/pkg/events"
+	"github.com/hyperifyio/statelessdb/pkg/events"
 
-	"statelessdb/internal/helpers"
+	"github.com/hyperifyio/statelessdb/internal/helpers"
 )
 
 // ComputeState is the actual state of computation, which is encrypted to

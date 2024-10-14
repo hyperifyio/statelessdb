@@ -11,14 +11,14 @@ import (
 	"os"
 	"time"
 
-	"statelessdb/pkg/apis"
-	"statelessdb/pkg/dtos"
-	"statelessdb/pkg/encodings"
-	"statelessdb/pkg/events"
-	"statelessdb/pkg/requests"
-	"statelessdb/pkg/states"
+	"github.com/hyperifyio/statelessdb/pkg/apis"
+	"github.com/hyperifyio/statelessdb/pkg/dtos"
+	"github.com/hyperifyio/statelessdb/pkg/encodings"
+	"github.com/hyperifyio/statelessdb/pkg/events"
+	"github.com/hyperifyio/statelessdb/pkg/requests"
+	"github.com/hyperifyio/statelessdb/pkg/states"
 
-	statelessdb "statelessdb"
+	statelessdb "github.com/hyperifyio/statelessdb"
 )
 
 import _ "net/http/pprof"

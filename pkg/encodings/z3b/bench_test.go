@@ -12,7 +12,7 @@ import (
 
 	"encoding/base64"
 
-	"statelessdb/pkg/encodings/z3b"
+	"github.com/hyperifyio/statelessdb/pkg/encodings/z3b"
 )
 
 func BenchmarkEncodeZ3b_Small(b *testing.B) {

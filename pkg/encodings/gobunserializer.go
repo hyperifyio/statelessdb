@@ -6,7 +6,7 @@ package encodings
 import (
 	"bytes"
 	"encoding/gob"
-	"statelessdb/pkg/errors"
+	"github.com/hyperifyio/statelessdb/pkg/errors"
 	"sync"
 )
 

@@ -3,6 +3,6 @@
 
 package main
 
-import "statelessdb/internal/logs"
+import "github.com/hyperifyio/statelessdb/internal/logs"
 
 var log = logs.NewLogger("statelessdb")

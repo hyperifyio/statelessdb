@@ -5,13 +5,13 @@ package apis
 
 import (
 	"github.com/gorilla/mux"
+	"github.com/hyperifyio/statelessdb/pkg/encodings"
+	"github.com/hyperifyio/statelessdb/pkg/metrics"
+	"github.com/hyperifyio/statelessdb/pkg/requests"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"io"
 	"net/http"
 	"net/http/pprof"
-	"statelessdb/pkg/encodings"
-	"statelessdb/pkg/metrics"
-	"statelessdb/pkg/requests"
 )
 
 type Server struct {

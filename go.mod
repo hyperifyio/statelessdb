@@ -1,4 +1,4 @@
-module statelessdb
+module github.com/hyperifyio/statelessdb
 
 go 1.22
 

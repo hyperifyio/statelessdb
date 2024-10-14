@@ -7,8 +7,8 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-	"statelessdb/internal/helpers"
-	"statelessdb/pkg/encodings"
+	"github.com/hyperifyio/statelessdb/internal/helpers"
+	"github.com/hyperifyio/statelessdb/pkg/encodings"
 	"sync"
 	"testing"
 )

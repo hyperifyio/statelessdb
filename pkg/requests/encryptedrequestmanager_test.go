@@ -10,9 +10,9 @@ import (
 	"sync"
 	"testing"
 
-	"statelessdb/pkg/encodings"
-	"statelessdb/pkg/requests"
-	"statelessdb/pkg/states"
+	"github.com/hyperifyio/statelessdb/pkg/encodings"
+	"github.com/hyperifyio/statelessdb/pkg/requests"
+	"github.com/hyperifyio/statelessdb/pkg/states"
 )
 
 // MockSerializer and MockUnserializer can be implemented if needed.

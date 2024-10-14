@@ -13,12 +13,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"statelessdb/pkg/apis"
-	"statelessdb/pkg/dtos"
-	"statelessdb/pkg/encodings"
-	"statelessdb/pkg/encodings/json"
-	"statelessdb/pkg/requests"
-	"statelessdb/pkg/states"
+	"github.com/hyperifyio/statelessdb/pkg/apis"
+	"github.com/hyperifyio/statelessdb/pkg/dtos"
+	"github.com/hyperifyio/statelessdb/pkg/encodings"
+	"github.com/hyperifyio/statelessdb/pkg/encodings/json"
+	"github.com/hyperifyio/statelessdb/pkg/requests"
+	"github.com/hyperifyio/statelessdb/pkg/states"
 )
 
 func BenchmarkHandleComputeStateRequest(b *testing.B) {

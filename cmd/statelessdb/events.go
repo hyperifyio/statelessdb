@@ -8,10 +8,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"statelessdb/pkg/dtos"
-	"statelessdb/pkg/events"
-	"statelessdb/pkg/requests"
-	"statelessdb/pkg/states"
+	"github.com/hyperifyio/statelessdb/pkg/dtos"
+	"github.com/hyperifyio/statelessdb/pkg/events"
+	"github.com/hyperifyio/statelessdb/pkg/requests"
+	"github.com/hyperifyio/statelessdb/pkg/states"
 )
 
 // ApiEventHandler is called to implement GET /api/v1/events which implements an HTTP long polling end point

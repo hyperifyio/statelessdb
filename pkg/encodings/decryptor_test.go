@@ -10,9 +10,9 @@ import (
 
 	"testing"
 
-	"statelessdb/pkg/encodings"
-	"statelessdb/pkg/errors"
-	"statelessdb/pkg/states"
+	"github.com/hyperifyio/statelessdb/pkg/encodings"
+	"github.com/hyperifyio/statelessdb/pkg/errors"
+	"github.com/hyperifyio/statelessdb/pkg/states"
 )
 
 func TestNewDecryptor(t *testing.T) {

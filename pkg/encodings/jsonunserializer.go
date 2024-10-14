@@ -7,8 +7,8 @@ import (
 	"bytes"
 	"sync"
 
-	json "statelessdb/pkg/encodings/json"
-	"statelessdb/pkg/errors"
+	json "github.com/hyperifyio/statelessdb/pkg/encodings/json"
+	"github.com/hyperifyio/statelessdb/pkg/errors"
 )
 
 var jsonDecoderPoolState = sync.Pool{

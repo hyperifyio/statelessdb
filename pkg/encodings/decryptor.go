@@ -7,7 +7,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
-	"statelessdb/pkg/errors"
+	"github.com/hyperifyio/statelessdb/pkg/errors"
 )
 
 // Decryptor helps with providing memory for encryption
