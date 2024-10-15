@@ -11,15 +11,27 @@ func (l *Logger) Debugf(msg string, args ...interface{}) {
 
 //go:format Infof 1 2
 func (l *Logger) Infof(msg string, args ...interface{}) {
-	l.queue <- LogMessage{InfoLogLevel, msg, args}
+	callDepth := getCallStackDepth()
+	if callDepth > l.depth {
+		return
+	}
+	l.queue <- LogMessage{InfoLogLevel, msg, args, callDepth}
 }
 
 //go:format Warnf 1 2
 func (l *Logger) Warnf(msg string, args ...interface{}) {
-	l.queue <- LogMessage{WarnLogLevel, msg, args}
+	callDepth := getCallStackDepth()
+	if callDepth > l.depth {
+		return
+	}
+	l.queue <- LogMessage{WarnLogLevel, msg, args, callDepth}
 }
 
 //go:format Errorf 1 2
 func (l *Logger) Errorf(msg string, args ...interface{}) {
-	l.queue <- LogMessage{ErrorLogLevel, msg, args}
+	callDepth := getCallStackDepth()
+	if callDepth > l.depth {
+		return
+	}
+	l.queue <- LogMessage{ErrorLogLevel, msg, args, callDepth}
 }

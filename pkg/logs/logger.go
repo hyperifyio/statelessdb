@@ -8,8 +8,11 @@ import (
 	"sync"
 )
 
-var DefaultLogLevel LogLevel = DebugLogLevel
-var DefaultBufferSize int = 2000
+var (
+	DefaultLogLevel   LogLevel = DebugLogLevel
+	DefaultBufferSize int      = 2000
+	DefaultLogDepth   int      = 3
+)
 
 type Logger struct {
 	Context   string
@@ -17,6 +20,7 @@ type Logger struct {
 	queue     chan LogMessage
 	wg        sync.WaitGroup
 	closeOnce sync.Once
+	depth     int
 }
 
 func NewLogger(context string) *Logger {
@@ -24,6 +28,7 @@ func NewLogger(context string) *Logger {
 		Context: context,
 		Level:   DefaultLogLevel,
 		queue:   make(chan LogMessage, DefaultBufferSize),
+		depth:   DefaultLogDepth,
 	}
 	// Start the log processing goroutine
 	logger.wg.Add(1)
