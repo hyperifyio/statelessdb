@@ -29,8 +29,8 @@ func Length[T interface{ ~[]E | chan E }, E any](value T, expected int) {
 func MinLength[T interface{ ~[]E | chan E }, E any](value T, expected int) {
 }
 
-func NotNil[T comparable](value T) {
-}
-
-func Nil[T comparable](value T) {
-}
+//func NotNil[T comparable](value T) {
+//}
+//
+//func Nil[T comparable](value T) {
+//}

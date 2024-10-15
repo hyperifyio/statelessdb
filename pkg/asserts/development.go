@@ -72,16 +72,16 @@ func MinLength[T interface{ ~[]E | chan E }, E any](value T, expected int) {
 	}
 }
 
-func NotNil[T comparable](value T) {
-	if value == nil {
-		runtime.Stack(stack, false)
-		log.Fatalf("FATAL ERROR: Not nil assert failed: Got %v, expected not to be nil. \n\nStack is:\n%s", value, string(stack))
-	}
-}
-
-func Nil[T comparable](value T) {
-	if value != expected {
-		runtime.Stack(stack, false)
-		log.Fatalf("FATAL ERROR: Nil assert failed: Got %v, expected to be nil. \n\nStack is:\n%s", value, string(stack))
-	}
-}
+//func NotNil[T any](value T) {
+//	if value == nil {
+//		runtime.Stack(stack, false)
+//		log.Fatalf("FATAL ERROR: Not nil assert failed: Got %v, expected not to be nil. \n\nStack is:\n%s", value, string(stack))
+//	}
+//}
+//
+//func Nil[T any](value T) {
+//	if value != expected {
+//		runtime.Stack(stack, false)
+//		log.Fatalf("FATAL ERROR: Nil assert failed: Got %v, expected to be nil. \n\nStack is:\n%s", value, string(stack))
+//	}
+//}
