@@ -4,6 +4,7 @@
 package logs
 
 import (
+	"fmt"
 	"log"
 	"sync"
 )
@@ -11,12 +12,12 @@ import (
 var (
 	DefaultLogLevel   LogLevel = DebugLogLevel
 	DefaultBufferSize int      = 2000
-	DefaultLogDepth   int      = 3
+	DefaultLogDepth   int      = 10
 )
 
 type Logger struct {
-	Context   string
-	Level     LogLevel
+	context   string
+	level     LogLevel
 	queue     chan LogMessage
 	wg        sync.WaitGroup
 	closeOnce sync.Once
@@ -25,8 +26,8 @@ type Logger struct {
 
 func NewLogger(context string) *Logger {
 	logger := &Logger{
-		Context: context,
-		Level:   DefaultLogLevel,
+		context: context,
+		level:   DefaultLogLevel,
 		queue:   make(chan LogMessage, DefaultBufferSize),
 		depth:   DefaultLogDepth,
 	}
@@ -37,13 +38,34 @@ func NewLogger(context string) *Logger {
 	return logger
 }
 
+func (l *Logger) Level(level LogLevel) *Logger {
+	l.level = level
+	return l
+}
+
+func (l *Logger) Depth(depth int) *Logger {
+	l.depth = depth
+	return l
+}
+
 func (l *Logger) String() string {
-	return "Logger(" + l.Level.String() + ")"
+	return fmt.Sprintf(
+		"Logger('%s', '%s', %d)",
+		l.context, l.level.String(), l.depth,
+	)
 }
 
 func (l *Logger) processQueue() {
 	defer l.wg.Done()
+	depthLimit := l.depth
+	levelLimit := l.level
 	for msg := range l.queue {
-		log.Println("[" + l.Context + "] " + msg.String())
+		if msg.level > levelLimit {
+			return
+		}
+		if msg.depth > depthLimit {
+			return
+		}
+		log.Println(msg.String())
 	}
 }
