@@ -5,6 +5,8 @@
 
 package logs
 
+import "log"
+
 //go:format Debugf 1 2
 func (l *Logger) Debugf(msg string, args ...interface{}) {
 }
@@ -25,4 +27,19 @@ func (l *Logger) Warnf(msg string, args ...interface{}) {
 func (l *Logger) Errorf(msg string, args ...interface{}) {
 	callDepth := getCallStackDepth()
 	l.queue <- LogMessage{l.context, ErrorLogLevel, msg, args, callDepth}
+}
+
+// Start starts the log processing goroutine
+func (l *Logger) Start() {
+	l.wg.Add(1)
+	go l.processQueue()
+}
+
+func (l *Logger) processQueue() {
+	defer l.wg.Done()
+	for msg := range l.queue {
+		if l.visible(msg.level, msg.depth) {
+			log.Println(msg.String())
+		}
+	}
 }

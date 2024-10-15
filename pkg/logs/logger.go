@@ -5,7 +5,6 @@ package logs
 
 import (
 	"fmt"
-	"log"
 	"sync"
 )
 
@@ -31,10 +30,7 @@ func NewLogger(context string) *Logger {
 		queue:   make(chan LogMessage, DefaultBufferSize),
 		depth:   DefaultLogDepth,
 	}
-	// Start the log processing goroutine
-	logger.wg.Add(1)
-	go logger.processQueue()
-
+	logger.Start()
 	return logger
 }
 
@@ -55,17 +51,6 @@ func (l *Logger) String() string {
 	)
 }
 
-func (l *Logger) processQueue() {
-	defer l.wg.Done()
-	depthLimit := l.depth
-	levelLimit := l.level
-	for msg := range l.queue {
-		if msg.level > levelLimit {
-			return
-		}
-		if msg.depth > depthLimit {
-			return
-		}
-		log.Println(msg.String())
-	}
+func (l *Logger) visible(level LogLevel, depth int) bool {
+	return level <= l.level && depth <= l.depth
 }
