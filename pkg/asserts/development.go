@@ -6,6 +6,7 @@
 package asserts
 
 import (
+	"cmp"
 	"log"
 	"runtime"
 )
@@ -44,28 +45,28 @@ func Equal[T comparable](value, expected T) {
 	}
 }
 
-func GreaterThanOrEqual[T comparable](value, expected T) {
+func GreaterOrEqual[T cmp.Ordered](value, expected T) {
 	if value < expected {
 		runtime.Stack(stack, false)
 		log.Fatalf("FATAL ERROR: Assert failed: Expected %v >= %v. \n\nStack is:\n%s", value, expected, string(stack))
 	}
 }
 
-func GreaterThan[T comparable](value, expected T) {
+func Greater[T cmp.Ordered](value, expected T) {
 	if value <= expected {
 		runtime.Stack(stack, false)
 		log.Fatalf("FATAL ERROR: Assert failed: Expected %v > %v. \n\nStack is:\n%s", value, expected, string(stack))
 	}
 }
 
-func LessThan[T comparable](value, expected T) {
+func Less[T cmp.Ordered](value, expected T) {
 	if value >= expected {
 		runtime.Stack(stack, false)
 		log.Fatalf("FATAL ERROR: Assert failed: Expected %v < %v. \n\nStack is:\n%s", value, expected, string(stack))
 	}
 }
 
-func LessThanOrEqual[T comparable](value, expected T) {
+func LessOrEqual[T cmp.Ordered](value, expected T) {
 	if value > expected {
 		runtime.Stack(stack, false)
 		log.Fatalf("FATAL ERROR: Assert failed: Expected %v <= %v. \n\nStack is:\n%s", value, expected, string(stack))

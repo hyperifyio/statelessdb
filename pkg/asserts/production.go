@@ -5,6 +5,8 @@
 
 package asserts
 
+import "cmp"
+
 func Index(i, maxIndex int) {
 }
 
@@ -35,14 +37,14 @@ func MinLength[T interface{ ~[]E | chan E }, E any](value T, expected int) {
 //func Nil[T comparable](value T) {
 //}
 
-func GreaterThanOrEqual[T comparable](value, expected T) {
+func GreaterOrEqual[T cmp.Ordered](value, expected T) {
 }
 
-func GreaterThan[T comparable](value, expected T) {
+func Greater[T cmp.Ordered](value, expected T) {
 }
 
-func LessThan[T comparable](value, expected T) {
+func Less[T cmp.Ordered](value, expected T) {
 }
 
-func LessThanOrEqual[T comparable](value, expected T) {
+func LessOrEqual[T cmp.Ordered](value, expected T) {
 }
