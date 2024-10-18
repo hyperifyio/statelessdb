@@ -17,14 +17,14 @@ func init() {
 	stack = make([]byte, 512)
 }
 
-func Index(i, maxIndex int) {
+func Index[T cmp.Ordered](i, maxIndex T) {
 	if i < 0 || i >= maxIndex {
 		runtime.Stack(stack, false)
 		log.Fatalf("Index out of boundaries: %d (0..%d)\n\nStack is:\n%s", i, maxIndex, string(stack))
 	}
 }
 
-func Coordinate(x, y, w, h int) {
+func Coordinate[T cmp.Ordered](x, y, w, h T) {
 	if x < 0 || x >= w || y < 0 || y >= h {
 		runtime.Stack(stack, false)
 		log.Fatalf("FATAL ERROR: Coordinate out of boundaries: %dx%d (%d x %d)\n\nStack is:\n%s", x, y, w, h, string(stack))

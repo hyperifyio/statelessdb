@@ -7,10 +7,10 @@ package asserts
 
 import "cmp"
 
-func Index(i, maxIndex int) {
+func Index[T cmp.Ordered](i, maxIndex T) {
 }
 
-func Coordinate(x, y, w, h int) {
+func Coordinate[T cmp.Ordered](x, y, w, h T) {
 }
 
 func NotEqual[T comparable](value, expected T) {
