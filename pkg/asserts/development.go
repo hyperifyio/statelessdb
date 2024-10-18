@@ -44,6 +44,34 @@ func Equal[T comparable](value, expected T) {
 	}
 }
 
+func GreaterThanOrEqual[T comparable](value, expected T) {
+	if value < expected {
+		runtime.Stack(stack, false)
+		log.Fatalf("FATAL ERROR: Assert failed: Expected %v >= %v. \n\nStack is:\n%s", value, expected, string(stack))
+	}
+}
+
+func GreaterThan[T comparable](value, expected T) {
+	if value <= expected {
+		runtime.Stack(stack, false)
+		log.Fatalf("FATAL ERROR: Assert failed: Expected %v > %v. \n\nStack is:\n%s", value, expected, string(stack))
+	}
+}
+
+func LessThan[T comparable](value, expected T) {
+	if value >= expected {
+		runtime.Stack(stack, false)
+		log.Fatalf("FATAL ERROR: Assert failed: Expected %v < %v. \n\nStack is:\n%s", value, expected, string(stack))
+	}
+}
+
+func LessThanOrEqual[T comparable](value, expected T) {
+	if value > expected {
+		runtime.Stack(stack, false)
+		log.Fatalf("FATAL ERROR: Assert failed: Expected %v <= %v. \n\nStack is:\n%s", value, expected, string(stack))
+	}
+}
+
 func Capacity[T interface{ ~[]E | chan E }, E any](value T, expected int) {
 	if cap(value) != expected {
 		runtime.Stack(stack, false)
