@@ -22,6 +22,7 @@ import (
 )
 
 const (
+	localEventBufferSize     = 1000
 	eventTimeoutTime         = 100 * time.Millisecond // Default request timeout time
 	eventExpirationTime      = 200 * time.Millisecond // Time until events expire
 	eventCleanupIntervalTime = 300 * time.Millisecond // Interval to clean up expired events
@@ -35,7 +36,7 @@ func TestApiEventHandler_NilState(t *testing.T) {
 	//manager := events.NewEventManager[uuid.UUID, interface{}](mockBus, 20*time.Second, 30*time.Second)
 
 	// Create main.ApiEventHandler
-	handler := main.ApiEventHandler(events.NewLocalEventBus[uuid.UUID, interface{}](), eventTimeoutTime, eventExpirationTime, eventCleanupIntervalTime) // Pass actual LocalEventBus or mock as needed
+	handler := main.ApiEventHandler(events.NewLocalEventBus[uuid.UUID, interface{}](localEventBufferSize), eventTimeoutTime, eventExpirationTime, eventCleanupIntervalTime) // Pass actual LocalEventBus or mock as needed
 
 	// Create a ComputeRequest
 	req := &requests.ComputeRequest{
@@ -89,7 +90,7 @@ func TestApiEventHandler_BufferedEvents(t *testing.T) {
 	//manager := events.NewEventManager(mockBus, 20*time.Second, 30*time.Second)
 
 	// Create main.ApiEventHandler
-	handler := main.ApiEventHandler(events.NewLocalEventBus[uuid.UUID, interface{}](), eventTimeoutTime, eventExpirationTime, eventCleanupIntervalTime) // Pass actual LocalEventBus or mock as needed
+	handler := main.ApiEventHandler(events.NewLocalEventBus[uuid.UUID, interface{}](localEventBufferSize), eventTimeoutTime, eventExpirationTime, eventCleanupIntervalTime) // Pass actual LocalEventBus or mock as needed
 
 	// Create a ComputeState with buffered events
 	stateID := uuid.New()
@@ -137,7 +138,7 @@ func TestApiEventHandler_SubscribeAndTimeout(t *testing.T) {
 	//cleanupInterval := 30 * time.Second
 	//manager := events.NewEventManager(mockBus, bufferExpiration, cleanupInterval)
 
-	eventBus := events.NewLocalEventBus[uuid.UUID, interface{}]()
+	eventBus := events.NewLocalEventBus[uuid.UUID, interface{}](localEventBufferSize)
 
 	// Create main.ApiEventHandler
 	handler := main.ApiEventHandler(eventBus, eventTimeoutTime, eventExpirationTime, eventCleanupIntervalTime)
@@ -194,7 +195,7 @@ func TestApiEventHandler_TimeoutWithoutEvents(t *testing.T) {
 	//manager := events.NewEventManager(mockBus, bufferExpiration, cleanupInterval)
 
 	// Create main.ApiEventHandler
-	handler := main.ApiEventHandler(events.NewLocalEventBus[uuid.UUID, interface{}](), eventTimeoutTime, eventExpirationTime, eventCleanupIntervalTime) // Pass actual LocalEventBus or mock as needed
+	handler := main.ApiEventHandler(events.NewLocalEventBus[uuid.UUID, interface{}](localEventBufferSize), eventTimeoutTime, eventExpirationTime, eventCleanupIntervalTime) // Pass actual LocalEventBus or mock as needed
 
 	// Create a ComputeState with no buffered events
 	stateID := uuid.New()
@@ -234,7 +235,7 @@ func TestApiEventHandler_ConcurrentAccess(t *testing.T) {
 	//manager := events.NewEventManager(mockBus, bufferExpiration, cleanupInterval)
 
 	// Create main.ApiEventHandler
-	handler := main.ApiEventHandler(events.NewLocalEventBus[uuid.UUID, interface{}](), eventTimeoutTime, eventExpirationTime, eventCleanupIntervalTime) // Pass actual LocalEventBus or mock as needed
+	handler := main.ApiEventHandler(events.NewLocalEventBus[uuid.UUID, interface{}](localEventBufferSize), eventTimeoutTime, eventExpirationTime, eventCleanupIntervalTime) // Pass actual LocalEventBus or mock as needed
 
 	// Define number of concurrent goroutines
 	const goroutines = 50
@@ -295,7 +296,7 @@ func TestNewEventResponseDTO_NoEvents(t *testing.T) {
 	//mockBus := mocks.NewMockEventBus[uuid.UUID, interface{}]()
 
 	// Create main.NewEventResponseDTO function
-	createResponse := main.NewEventResponseDTO(events.NewLocalEventBus[uuid.UUID, interface{}]()) // Pass actual LocalEventBus or mock as needed
+	createResponse := main.NewEventResponseDTO(events.NewLocalEventBus[uuid.UUID, interface{}](localEventBufferSize)) // Pass actual LocalEventBus or mock as needed
 
 	// Create a ComputeState with no events
 	state := states.NewComputeState(
@@ -328,7 +329,7 @@ func TestNewEventResponseDTO_WithEvents(t *testing.T) {
 	//mockBus := mocks.NewMockEventBus[uuid.UUID, interface{}]()
 
 	// Create main.NewEventResponseDTO function
-	createResponse := main.NewEventResponseDTO(events.NewLocalEventBus[uuid.UUID, interface{}]()) // Pass actual LocalEventBus or mock as needed
+	createResponse := main.NewEventResponseDTO(events.NewLocalEventBus[uuid.UUID, interface{}](localEventBufferSize)) // Pass actual LocalEventBus or mock as needed
 
 	// Create a ComputeState with multiple events
 	event1 := events.NewEvent[uuid.UUID, interface{}](uuid.New(), "event_data_1", time.Now().UnixMilli())
@@ -366,7 +367,7 @@ func TestNewEventResponseDTO_ConcurrentAccess(t *testing.T) {
 	//mockBus := mocks.NewMockEventBus[uuid.UUID, interface{}]()
 
 	// Create main.NewEventResponseDTO function
-	createResponse := main.NewEventResponseDTO(events.NewLocalEventBus[uuid.UUID, interface{}]()) // Pass actual LocalEventBus or mock as needed
+	createResponse := main.NewEventResponseDTO(events.NewLocalEventBus[uuid.UUID, interface{}](localEventBufferSize)) // Pass actual LocalEventBus or mock as needed
 
 	// Create a ComputeState with multiple events
 	event1 := events.NewEvent[uuid.UUID, interface{}](uuid.New(), "event_data_1", time.Now().UnixMilli())

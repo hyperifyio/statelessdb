@@ -93,7 +93,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	eventBus := events.NewLocalEventBus[uuid.UUID, interface{}]()
+	eventBus := events.NewLocalEventBus[uuid.UUID, interface{}](LocalEventBufferSize)
 
 	server := apis.NewServer()
 	if *enablePprof {

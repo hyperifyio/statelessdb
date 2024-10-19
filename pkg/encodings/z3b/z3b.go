@@ -116,7 +116,7 @@ func Encode(data []byte) ([]byte, error) {
 		return nil, nil
 	}
 
-	ch := make(chan groupResult)
+	ch := make(chan groupResult, numGroups)
 	for g := 0; g < numGroups; g++ {
 		go findGroup(g, data, ch)
 	}
@@ -205,7 +205,7 @@ func encodeGroup(currentGroup int, data []byte) ([]byte, error) {
 			continue
 		}
 
-		ch := make(chan [2]int)
+		ch := make(chan [2]int, numSets)
 		for j := 1; j < numSets; j++ {
 			go findChunk(currentGroup, currentSet, j, data[i:], ch)
 		}

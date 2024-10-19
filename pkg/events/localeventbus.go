@@ -10,9 +10,11 @@ type LocalEventBus[T comparable, D interface{}] struct {
 	mu          sync.RWMutex
 }
 
-func NewLocalEventBus[T comparable, D interface{}]() *LocalEventBus[T, D] {
+func NewLocalEventBus[T comparable, D interface{}](
+	bufferSize int,
+) *LocalEventBus[T, D] {
 	return &LocalEventBus[T, D]{
-		subscribers: make(map[T][]chan *Event[T, D]),
+		subscribers: make(map[T][]chan *Event[T, D], bufferSize),
 	}
 }
 

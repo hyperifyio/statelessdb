@@ -24,13 +24,15 @@ func NewEventManager[T comparable, D interface{}](
 	bus EventBus[T, D],
 	bufferExpiration time.Duration,
 	cleanupInterval time.Duration,
+	subscribersBufferSize int,
+	internalBufferSize int,
 ) *EventManager[T, D] {
 
 	m := &EventManager[T, D]{
-		subscribers:      make(map[T][]chan int64),
+		subscribers:      make(map[T][]chan int64, subscribersBufferSize),
 		buffers:          make(map[T][]*Event[T, D]),
 		eventBus:         bus,
-		eventChannel:     make(chan *Event[T, D]),
+		eventChannel:     make(chan *Event[T, D], internalBufferSize),
 		bufferExpiration: bufferExpiration,
 		cleanupInterval:  cleanupInterval,
 	}

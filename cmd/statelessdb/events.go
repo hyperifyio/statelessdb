@@ -22,7 +22,13 @@ func ApiEventHandler(
 	intervalTime time.Duration,
 ) requests.ApiRequestHandlerFunc[*states.ComputeState, *requests.ComputeRequest] {
 
-	manager := events.NewEventManager(bus, eventExpirationTime, intervalTime) // unsubscribe timeout and interval to clean up events
+	manager := events.NewEventManager(
+		bus,
+		eventExpirationTime,
+		intervalTime,
+		EventSubscribersBufferSize,
+		InternalEventManagerBufferSize,
+	)
 
 	return func(r *requests.ComputeRequest, state *states.ComputeState) (*states.ComputeState, error) {
 
@@ -43,7 +49,7 @@ func ApiEventHandler(
 			return state, nil
 		}
 
-		eventChannel := make(chan int64)
+		eventChannel := make(chan int64, EventBufferSize)
 		manager.Subscribe(state.Id, eventChannel)
 		defer manager.Unsubscribe(state.Id, eventChannel)
 
