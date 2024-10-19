@@ -15,7 +15,7 @@ import (
 
 func TestWorkerPool_BasicFunctionality(t *testing.T) {
 	ctx := context.Background()
-	pool := workers.NewWorkerPool[int](ctx, 10)
+	pool := workers.NewPool[int](ctx, 10)
 
 	var mu sync.Mutex
 	processedJobs := make([]int, 0)
@@ -68,7 +68,7 @@ func TestWorkerPool_BasicFunctionality(t *testing.T) {
 
 func TestWorkerPool_PublishAfterStop(t *testing.T) {
 	ctx := context.Background()
-	pool := workers.NewWorkerPool[int](ctx, 10)
+	pool := workers.NewPool[int](ctx, 10)
 
 	jobHandler := func(job int) {
 		// Do nothing
@@ -88,7 +88,7 @@ func TestWorkerPool_PublishAfterStop(t *testing.T) {
 
 func TestWorkerPool_ContextCancel(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
-	pool := workers.NewWorkerPool[int](ctx, 10)
+	pool := workers.NewPool[int](ctx, 10)
 
 	var wg sync.WaitGroup
 	jobHandler := func(job int) {
@@ -128,7 +128,7 @@ func TestWorkerPool_ContextCancel(t *testing.T) {
 
 func TestWorkerPool_StopWaitsForWorkers(t *testing.T) {
 	ctx := context.Background()
-	pool := workers.NewWorkerPool[int](ctx, 10)
+	pool := workers.NewPool[int](ctx, 10)
 
 	jobStarted := make(chan struct{})
 	jobFinished := make(chan struct{})

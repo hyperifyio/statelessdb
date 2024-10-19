@@ -41,7 +41,7 @@ type WorkerPool[T any] struct {
 
 var _ Pool[int] = &WorkerPool[int]{} // Implements Pool[int]
 
-func NewWorkerPool[T any](
+func NewPool[T any](
 	ctx context.Context,
 	bufferSize int,
 ) *WorkerPool[T] {
