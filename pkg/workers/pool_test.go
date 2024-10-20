@@ -205,19 +205,41 @@ func TestWorkerPool_StopWaitsForWorkers(t *testing.T) {
 	}
 }
 
+// TestWorkerPool_TryPublish tests the TryPublish method to ensure it behaves correctly
+// when the job queue is full and when space becomes available.
 func TestWorkerPool_TryPublish(t *testing.T) {
+	// Create a cancellable context
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	ctx := context.Background()
-	pool := workers.NewPool[int](ctx, 2) // Small buffer size for testing
-	if err := pool.Start(1, func(job int) {
-		time.Sleep(100 * time.Millisecond) // Simulate work
-	}); err != nil {
-		t.Fatalf("Failed to start the pool: err=%v", err)
+	// Channels to control and verify worker processing
+	processJob := make(chan struct{})    // Signals the worker to proceed with processing
+	workerProcessed := make(chan int, 1) // Captures the processed job
+
+	// Define the worker function that waits for the test to allow processing
+	workerFunc := func(job int) {
+		// Signal that the worker has picked up the job
+		select {
+		case workerProcessed <- job:
+		default:
+			// In case the channel is full, which shouldn't happen in this test
+		}
+
+		// Wait until the test signals to process the job
+		<-processJob
+
+		// Simulate job processing (optional, can be omitted if not needed)
 	}
 
+	// Initialize the worker pool with buffer size=2 and 1 worker
+	pool := workers.NewPool[int](ctx, 2)
+	err := pool.Start(1, workerFunc)
+	if err != nil {
+		t.Fatalf("Failed to start the pool: %v", err)
+	}
 	defer pool.Stop()
 
-	// Publish jobs to fill the queue
+	// Publish two jobs, filling the buffer
 	for i := 0; i < 2; i++ {
 		success, err := pool.TryPublish(i)
 		if !success || err != nil {
@@ -225,13 +247,36 @@ func TestWorkerPool_TryPublish(t *testing.T) {
 		}
 	}
 
-	// Attempt to publish another job; should fail because the queue is full
+	// At this point:
+	// - Buffer size is 2, so two jobs are in the buffer.
+	// - The worker has not started processing any job yet (blocked).
+
+	// Attempt to publish the third job; should fail because the queue is full
 	success, err := pool.TryPublish(2)
 	if success {
-		t.Errorf("Expected TryPublish to return false when queue is full, but got success=%v", success)
+		t.Errorf("Expected TryPublish to return false when queue is full, but got success=true")
 	}
 	if err != nil {
 		t.Errorf("Expected no error when queue is full, but got err=%v", err)
+	}
+
+	// Now, allow the worker to process the first job by signaling via processJob channel
+	close(processJob)
+
+	// Wait for the worker to pick up and process the first job
+	select {
+	case job := <-workerProcessed:
+		if job != 0 {
+			t.Errorf("Expected job %d to be processed, got %d", 0, job)
+		}
+	case <-time.After(time.Second):
+		t.Fatalf("Timed out waiting for the worker to process the job")
+	}
+
+	// Now, TryPublish should succeed as there is space in the buffer
+	success, err = pool.TryPublish(3)
+	if !success || err != nil {
+		t.Fatalf("Failed to publish job 3 after buffer was freed: success=%v, err=%v", success, err)
 	}
 }
 
