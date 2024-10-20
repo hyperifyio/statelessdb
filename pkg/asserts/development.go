@@ -18,16 +18,18 @@ func init() {
 }
 
 func Index[T cmp.Ordered](i, maxIndex T) {
-	if i < T(0) || i >= maxIndex {
+	var e T
+	if i < e || i >= maxIndex {
 		runtime.Stack(stack, false)
-		log.Fatalf("Index out of boundaries: %d (0..%d)\n\nStack is:\n%s", i, maxIndex, string(stack))
+		log.Fatalf("Index out of boundaries: %v (0..%v)\n\nStack is:\n%s", i, maxIndex, string(stack))
 	}
 }
 
 func Coordinate[T cmp.Ordered](x, y, w, h T) {
-	if x < T(0) || x >= w || y < T(0) || y >= h {
+	var e T
+	if x < e || x >= w || y < e || y >= h {
 		runtime.Stack(stack, false)
-		log.Fatalf("FATAL ERROR: Coordinate out of boundaries: %dx%d (%d x %d)\n\nStack is:\n%s", x, y, w, h, string(stack))
+		log.Fatalf("FATAL ERROR: Coordinate out of boundaries: %vx%v (%v x %v)\n\nStack is:\n%s", x, y, w, h, string(stack))
 	}
 }
 
@@ -76,28 +78,28 @@ func LessOrEqual[T cmp.Ordered](value, expected T) {
 func Capacity[T interface{ ~[]E | chan E }, E any](value T, expected int) {
 	if cap(value) != expected {
 		runtime.Stack(stack, false)
-		log.Fatalf("FATAL ERROR: Capasity of slice incorrect: Got %d, expected to be %d. \n\nStack is:\n%s", cap(value), expected, string(stack))
+		log.Fatalf("FATAL ERROR: Capasity of slice incorrect: Got %v, expected to be %v. \n\nStack is:\n%s", cap(value), expected, string(stack))
 	}
 }
 
 func MinCapacity[T interface{ ~[]E | chan E }, E any](value T, expected int) {
 	if cap(value) < expected {
 		runtime.Stack(stack, false)
-		log.Fatalf("FATAL ERROR: Capasity of slice too low: Got %d, expected to be at least %d. \n\nStack is:\n%s", cap(value), expected, string(stack))
+		log.Fatalf("FATAL ERROR: Capasity of slice too low: Got %v, expected to be at least %v. \n\nStack is:\n%s", cap(value), expected, string(stack))
 	}
 }
 
 func Length[T interface{ ~[]E | chan E }, E any](value T, expected int) {
 	if len(value) != expected {
 		runtime.Stack(stack, false)
-		log.Fatalf("FATAL ERROR: Length of slice incorrect: Got %d, expected to be %d. \n\nStack is:\n%s", len(value), expected, string(stack))
+		log.Fatalf("FATAL ERROR: Length of slice incorrect: Got %v, expected to be %v. \n\nStack is:\n%s", len(value), expected, string(stack))
 	}
 }
 
 func MinLength[T interface{ ~[]E | chan E }, E any](value T, expected int) {
 	if len(value) < expected {
 		runtime.Stack(stack, false)
-		log.Fatalf("FATAL ERROR: Length of slice too low: Got %d, expected to be at least %d. \n\nStack is:\n%s", len(value), expected, string(stack))
+		log.Fatalf("FATAL ERROR: Length of slice too low: Got %v, expected to be at least %v. \n\nStack is:\n%s", len(value), expected, string(stack))
 	}
 }
 
