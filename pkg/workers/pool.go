@@ -156,17 +156,17 @@ func (m *WorkerPool[T]) Start(workers int, f func(T)) error {
 			diffJobsWaiting := int64(currentJobsWaiting) - prevJobsWaiting
 			diffJobsProcessing := int64(currentJobsProcessing) - prevJobsProcessing
 
-			jobsPublishedSecond := float64(diffPublishedCount) / float64(diffTime) / 1000
-			jobsStartedSecond := float64(diffStartedCount) / float64(diffTime) / 1000
-			jobsFinishedSecond := float64(diffFinishedCount) / float64(diffTime) / 1000
+			jobsPublishedSecond := float64(diffPublishedCount) / float64(diffTime)
+			jobsStartedSecond := float64(diffStartedCount) / float64(diffTime)
+			jobsFinishedSecond := float64(diffFinishedCount) / float64(diffTime)
 
 			if diffPublishedCount != 0 || diffStartedCount != 0 || diffFinishedCount != 0 {
-				log.Infof("Pool active: Published=%d (%f/s), Started=%d (%f/s), Finished=%d (%f/s), Queue=%d (%d), Processing=%d (%d)",
-					diffPublishedCount, jobsPublishedSecond, diffStartedCount, jobsStartedSecond, diffFinishedCount, jobsFinishedSecond, diffJobsWaiting, currentJobsWaiting, diffJobsProcessing, currentJobsProcessing)
+				log.Infof("Pool active: Published=%d (%f/ms), Started=%d (%f/ms), Finished=%d (%f/ms), Queue=%d (%d), Processing=%d (%d)",
+					diffPublishedCount, jobsPublishedSecond, diffStartedCount, jobsStartedSecond, diffFinishedCount, jobsFinishedSecond, currentJobsWaiting, diffJobsWaiting, currentJobsProcessing, diffJobsProcessing)
 			} else {
 				log.Debugf(
-					"Pool passive: Published=%d (%f/s), Started=%d (%f/s), Finished=%d (%f/s), Queue=%d (%d), Processing=%d (%d)",
-					diffPublishedCount, jobsPublishedSecond, diffStartedCount, jobsStartedSecond, diffFinishedCount, jobsFinishedSecond, diffJobsWaiting, currentJobsWaiting, diffJobsProcessing, currentJobsProcessing)
+					"Pool passive: Published=%d (%f/ms), Started=%d (%f/ms), Finished=%d (%f/ms), Queue=%d (%d), Processing=%d (%d)",
+					diffPublishedCount, jobsPublishedSecond, diffStartedCount, jobsStartedSecond, diffFinishedCount, jobsFinishedSecond, currentJobsWaiting, diffJobsWaiting, currentJobsProcessing, diffJobsProcessing)
 			}
 
 			prevPublishedCount = m.PublishedJobs()
