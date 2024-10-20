@@ -169,6 +169,7 @@ func (m *WorkerPool[T]) Start(workers int, f func(T)) error {
 					diffPublishedCount, jobsPublishedSecond, diffStartedCount, jobsStartedSecond, diffFinishedCount, jobsFinishedSecond, currentJobsWaiting, diffJobsWaiting, currentJobsProcessing, diffJobsProcessing)
 			}
 
+			prevTime = currentTime
 			prevPublishedCount = m.PublishedJobs()
 			prevStartedCount = m.StartedJobs()
 			prevFinishedCount = m.FinishedJobs()
