@@ -146,10 +146,10 @@ func (m *WorkerPool[T]) Start(workers int, f func(T)) error {
 			diffFinishedCount := currentFinishedCount - prevFinishedCount
 
 			if diffPublishedCount != 0 || diffStartedCount != 0 || diffFinishedCount != 0 {
-				log.Infof("Pool active: Published=%d, Started=%d, Finished=%s",
+				log.Infof("Pool active: Published=%d, Started=%d, Finished=%d",
 					diffPublishedCount, diffStartedCount, diffFinishedCount)
 			} else {
-				log.Debugf("Pool passive: Published=%d, Started=%d, Finished=%s",
+				log.Debugf("Pool passive: Published=%d, Started=%d, Finished=%d",
 					diffPublishedCount, diffStartedCount, diffFinishedCount)
 			}
 
