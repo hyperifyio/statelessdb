@@ -24,9 +24,21 @@ const (
 
 // Pool defines the interface for a worker pool.
 type Pool[T any] interface {
-	Start(workers int, f func(T)) error // Start starts workers on pool.
-	Stop() error                        // Stop stops the worker pool.
-	Publish(job T) error                // Publish is a thread-safe method to add a job to the worker pool.
+
+	// Start starts workers on pool.
+	Start(workers int, f func(T)) error
+
+	// Stop stops the worker pool.
+	Stop() error
+
+	// Publish is a potentially blocking thread-safe method to add a job to the
+	// worker pool. It will block if no workers are available.
+	Publish(job T) error
+
+	// TryPublish is a non-blocking thread-safe method to add a job to the
+	// worker pool. Instead of blocking, it will fail instantly, if no workers
+	// are available and return value will be ErrWorkersBusy in this case.
+	TryPublish(job T) (bool, error)
 }
 
 // WorkerPool is an implementation of the Pool interface.
@@ -100,8 +112,8 @@ func (m *WorkerPool[T]) Stop() error {
 	}
 }
 
-// Publish is a thread safe method to add jobs to the worker pool. If the job
-// queue is full, this method will block.
+// Publish is a potentially blocking thread-safe method to add a job to the
+// worker pool. It will block if no workers are available.
 func (m *WorkerPool[T]) Publish(job T) error {
 	if atomic.LoadUint32(&m.state) != StateRunning {
 		return ErrPoolClosed
@@ -112,6 +124,23 @@ func (m *WorkerPool[T]) Publish(job T) error {
 		return nil
 	case <-m.ctx.Done():
 		return ErrPoolClosed
+	}
+}
+
+// TryPublish is a non-blocking thread-safe method to add a job to the
+// worker pool. Instead of blocking, it will fail instantly, if no workers
+// are available and return value will be ErrWorkersBusy in this case.
+func (m *WorkerPool[T]) TryPublish(job T) (bool, error) {
+	if atomic.LoadUint32(&m.state) != StateRunning {
+		return false, ErrPoolClosed
+	}
+	select {
+	case m.jobs <- job:
+		log.Debugf("TryPublish: Published a job")
+		return true, nil
+	default:
+		log.Debugf("TryPublish: All workers busy and queue full")
+		return false, nil
 	}
 }
 

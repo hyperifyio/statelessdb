@@ -140,7 +140,9 @@ func TestWorkerPool_StopWaitsForWorkers(t *testing.T) {
 		close(jobFinished) // Signal that job has finished
 	}
 
-	pool.Start(1, jobHandler)
+	if err := pool.Start(1, jobHandler); err != nil {
+		t.Fatalf("Failed to start the pool: err=%v", err)
+	}
 
 	err := pool.Publish(1)
 	if err != nil {
@@ -182,5 +184,35 @@ func TestWorkerPool_StopWaitsForWorkers(t *testing.T) {
 		// Stop() returned after job finished
 	case <-time.After(100 * time.Millisecond):
 		t.Fatal("Stop() did not return after job finished")
+	}
+}
+
+func TestWorkerPool_TryPublish(t *testing.T) {
+
+	ctx := context.Background()
+	pool := workers.NewPool[int](ctx, 2) // Small buffer size for testing
+	if err := pool.Start(1, func(job int) {
+		time.Sleep(100 * time.Millisecond) // Simulate work
+	}); err != nil {
+		t.Fatalf("Failed to start the pool: err=%v", err)
+	}
+
+	defer pool.Stop()
+
+	// Publish jobs to fill the queue
+	for i := 0; i < 2; i++ {
+		success, err := pool.TryPublish(i)
+		if !success || err != nil {
+			t.Fatalf("Failed to publish job %d: success=%v, err=%v", i, success, err)
+		}
+	}
+
+	// Attempt to publish another job; should fail because the queue is full
+	success, err := pool.TryPublish(2)
+	if success {
+		t.Errorf("Expected TryPublish to return false when queue is full, but got success=%v", success)
+	}
+	if err != nil {
+		t.Errorf("Expected no error when queue is full, but got err=%v", err)
 	}
 }
