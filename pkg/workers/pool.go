@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/hyperifyio/statelessdb/pkg/states"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -129,33 +130,50 @@ func (m *WorkerPool[T]) Start(workers int, f func(T)) error {
 	}()
 
 	go func() {
+
+		prevTime := states.NewTimeNow()
 		prevPublishedCount := m.PublishedJobs()
 		prevStartedCount := m.StartedJobs()
 		prevFinishedCount := m.FinishedJobs()
+		prevJobsWaiting := int64(0)
+		prevJobsProcessing := int64(0)
 
 		ticker := time.NewTicker(StatusUpdateInterval * time.Second)
 		defer ticker.Stop()
 
 		for {
+			currentTime := states.NewTimeNow()
 			currentPublishedCount := m.PublishedJobs()
 			currentStartedCount := m.StartedJobs()
 			currentFinishedCount := m.FinishedJobs()
+			currentJobsWaiting := currentPublishedCount - currentFinishedCount
+			currentJobsProcessing := currentStartedCount - currentFinishedCount
 
+			diffTime := currentTime - prevTime
 			diffPublishedCount := currentPublishedCount - prevPublishedCount
 			diffStartedCount := currentStartedCount - prevStartedCount
 			diffFinishedCount := currentFinishedCount - prevFinishedCount
+			diffJobsWaiting := int64(currentJobsWaiting) - prevJobsWaiting
+			diffJobsProcessing := int64(currentJobsProcessing) - prevJobsProcessing
+
+			jobsPublishedSecond := float64(diffPublishedCount) / float64(diffTime) / 1000
+			jobsStartedSecond := float64(diffStartedCount) / float64(diffTime) / 1000
+			jobsFinishedSecond := float64(diffFinishedCount) / float64(diffTime) / 1000
 
 			if diffPublishedCount != 0 || diffStartedCount != 0 || diffFinishedCount != 0 {
-				log.Infof("Pool active: Published=%d, Started=%d, Finished=%d",
-					diffPublishedCount, diffStartedCount, diffFinishedCount)
+				log.Infof("Pool active: Published=%d (%f/s), Started=%d (%f/s), Finished=%d (%f/s), Queue=%d (%d), Processing=%d (%d)",
+					diffPublishedCount, jobsPublishedSecond, diffStartedCount, jobsStartedSecond, diffFinishedCount, jobsFinishedSecond, diffJobsWaiting, currentJobsWaiting, diffJobsProcessing, currentJobsProcessing)
 			} else {
-				log.Debugf("Pool passive: Published=%d, Started=%d, Finished=%d",
-					diffPublishedCount, diffStartedCount, diffFinishedCount)
+				log.Debugf(
+					"Pool passive: Published=%d (%f/s), Started=%d (%f/s), Finished=%d (%f/s), Queue=%d (%d), Processing=%d (%d)",
+					diffPublishedCount, jobsPublishedSecond, diffStartedCount, jobsStartedSecond, diffFinishedCount, jobsFinishedSecond, diffJobsWaiting, currentJobsWaiting, diffJobsProcessing, currentJobsProcessing)
 			}
 
 			prevPublishedCount = m.PublishedJobs()
 			prevStartedCount = m.StartedJobs()
 			prevFinishedCount = m.FinishedJobs()
+			prevJobsWaiting = int64(currentJobsWaiting)
+			prevJobsProcessing = int64(currentJobsProcessing)
 
 			select {
 			case <-m.ctx.Done():
