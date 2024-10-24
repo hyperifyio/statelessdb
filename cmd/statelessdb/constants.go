@@ -8,4 +8,6 @@ const (
 	EventBufferSize                = 1000
 	EventSubscribersBufferSize     = 1000
 	InternalEventManagerBufferSize = 1000
+	EventTriggerIntervalTimeMs     = 200
+	EventTriggerRetryTime          = 3
 )

@@ -11,13 +11,15 @@ import (
 // EventManager is responsible for handling event buffering, subscribing, and
 // unsubscribing for each client
 type EventManager[T comparable, D interface{}] struct {
-	subscribers      map[T][]chan int64   // Notification channels per resource (state.Id)
-	buffers          map[T][]*Event[T, D] // Event buffers per resource (state.Id)
-	mu               sync.Mutex           // Thread safety lock
-	eventBus         EventBus[T, D]       // Global event bus
-	eventChannel     chan *Event[T, D]    // Internal event channel
-	bufferExpiration time.Duration        // Duration after which events expire from the buffer
-	cleanupInterval  time.Duration        // Interval to clean up events
+	subscribers        map[T][]chan int64   // Notification channels per resource (state.Id)
+	buffers            map[T][]*Event[T, D] // Event buffers per resource (state.Id)
+	mu                 sync.Mutex           // Thread safety lock
+	eventBus           EventBus[T, D]       // Global event bus. Safe to use from threads, immutable.
+	eventChannel       chan *Event[T, D]    // Internal event channel. Safe to use from threads, immutable.
+	bufferExpiration   time.Duration        // Duration after which events expire from the buffer. Safe to use from threads, immutable.
+	cleanupInterval    time.Duration        // Interval to clean up events. Safe to use from threads, immutable.
+	retryEventInterval time.Duration        // Interval to try sending event again. Safe to use from threads, immutable.
+	maxRetries         int                  // Max retry times for triggering events. Safe to use from threads, immutable.
 }
 
 func NewEventManager[T comparable, D interface{}](
@@ -26,15 +28,19 @@ func NewEventManager[T comparable, D interface{}](
 	cleanupInterval time.Duration,
 	subscribersBufferSize int,
 	internalBufferSize int,
+	retryEventInterval time.Duration,
+	maxRetries int,
 ) *EventManager[T, D] {
 
 	m := &EventManager[T, D]{
-		subscribers:      make(map[T][]chan int64, subscribersBufferSize),
-		buffers:          make(map[T][]*Event[T, D]),
-		eventBus:         bus,
-		eventChannel:     make(chan *Event[T, D], internalBufferSize),
-		bufferExpiration: bufferExpiration,
-		cleanupInterval:  cleanupInterval,
+		subscribers:        make(map[T][]chan int64, subscribersBufferSize),
+		buffers:            make(map[T][]*Event[T, D]),
+		eventBus:           bus,
+		eventChannel:       make(chan *Event[T, D], internalBufferSize),
+		bufferExpiration:   bufferExpiration,
+		cleanupInterval:    cleanupInterval,
+		retryEventInterval: retryEventInterval,
+		maxRetries:         maxRetries,
 	}
 
 	// Start the event processing goroutine
@@ -68,19 +74,30 @@ func (m *EventManager[T, D]) processEvents() {
 		// Notify all subscribers of this event type
 		if subscribers, found := m.subscribers[event.Type]; found {
 			for _, ch := range subscribers {
-				// Notify the subscriber without blocking
-				select {
-				case ch <- event.Created:
-					log.Debugf("[processEvents]: Event sent successfully to %v", event.Type)
-					// Notification sent successfully
-				default:
-					log.Warnf("[processEvents]: Subscriber was not ready -- skipped: %v", event.Type)
-					// Subscriber not ready, skip notification
-				}
+				go m.triggerEvent(ch, event.Type, event.Created)
 			}
 		}
 
 		m.mu.Unlock()
+	}
+}
+
+// Notify the subscriber
+func (m *EventManager[T, D]) triggerEvent(ch chan int64, eventType T, value int64) {
+
+	ticker := time.NewTicker(m.retryEventInterval)
+	defer ticker.Stop()
+
+	for i := 0; i < m.maxRetries; i++ {
+		select {
+		case ch <- value:
+			log.Debugf("[triggerEvent]: Event sent successfully to %v", eventType)
+			return
+		default:
+			log.Warnf("[triggerEvent]: Subscriber was not ready -- waiting a moment: %v", eventType)
+			<-ticker.C
+			continue
+		}
 	}
 }
 

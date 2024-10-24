@@ -28,6 +28,8 @@ func ApiEventHandler(
 		intervalTime,
 		EventSubscribersBufferSize,
 		InternalEventManagerBufferSize,
+		EventTriggerIntervalTimeMs*time.Second,
+		EventTriggerRetryTime,
 	)
 
 	return func(r *requests.ComputeRequest, state *states.ComputeState) (*states.ComputeState, error) {
