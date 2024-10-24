@@ -88,17 +88,20 @@ func (m *EventManager[T, D]) triggerEvent(ch chan int64, eventType T, value int6
 	ticker := time.NewTicker(m.retryEventInterval)
 	defer ticker.Stop()
 
-	for i := 0; i < m.maxRetries; i++ {
+	retries := m.maxRetries
+	for i := 0; i < retries; i++ {
 		select {
 		case ch <- value:
 			log.Debugf("[triggerEvent]: Event sent successfully to %v", eventType)
 			return
 		default:
-			log.Warnf("[triggerEvent]: Subscriber was not ready -- waiting a moment: %v", eventType)
+			log.Warnf("[triggerEvent]: Subscriber was not ready -- waiting a moment (%d/%d): %v", i, retries, eventType)
 			<-ticker.C
 			continue
 		}
 	}
+
+	log.Errorf("[triggerEvent]: Failed to send event: Subscriber was not ready -- skipped: %v", eventType)
 }
 
 // Subscribe adds a new subscription for a given id
