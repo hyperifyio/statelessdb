@@ -35,6 +35,13 @@ func (l *Logger) Start() {
 	go l.processQueue()
 }
 
+func (l *Logger) Stop() {
+	l.closeOnce.Do(func() {
+		close(l.queue)
+		l.wg.Wait()
+	})
+}
+
 func (l *Logger) processQueue() {
 	defer l.wg.Done()
 	for msg := range l.queue {

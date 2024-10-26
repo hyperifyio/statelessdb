@@ -56,3 +56,6 @@ func (l *Logger) Errorf(msg string, args ...interface{}) {
 // Start starts the log processing goroutine
 func (l *Logger) Start() {
 }
+
+func (l *Logger) Stop() {
+}

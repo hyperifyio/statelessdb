@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	DefaultLogLevel   LogLevel = DebugLogLevel
-	DefaultBufferSize int      = 2000
-	DefaultLogDepth   int      = 10
+	DefaultLogLevel           LogLevel = DebugLogLevel
+	DefaultBufferSize         int      = 2000
+	DefaultLogDepth           int      = 10
+	DefaultInitialLoggerCount int      = 10
 )
 
 type Logger struct {
@@ -23,6 +24,12 @@ type Logger struct {
 	depth     int
 }
 
+var allLoggers []*Logger
+
+func init() {
+	allLoggers = make([]*Logger, 0, DefaultInitialLoggerCount)
+}
+
 func NewLogger(context string) *Logger {
 	logger := &Logger{
 		context: context,
@@ -31,11 +38,14 @@ func NewLogger(context string) *Logger {
 		depth:   DefaultLogDepth,
 	}
 	logger.Start()
+	allLoggers = append(allLoggers, logger)
 	return logger
 }
 
-func (l *Logger) Close() {
-	close(l.queue)
+func StopAll() {
+	for _, l := range allLoggers {
+		l.Stop()
+	}
 }
 
 func (l *Logger) Level(level LogLevel) *Logger {
