@@ -34,6 +34,10 @@ func NewLogger(context string) *Logger {
 	return logger
 }
 
+func (l *Logger) Close() {
+	close(l.queue)
+}
+
 func (l *Logger) Level(level LogLevel) *Logger {
 	l.level = level
 	return l
